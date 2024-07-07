@@ -25,6 +25,7 @@ export async function instagramScraper(handle: string) {
 
     console.log('Loading and scraping page for @' + handle);
     await page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
+    await sleep(1000);
 
     return await page.evaluate(() => {
         const images = Array.from(document.querySelectorAll('img'));
