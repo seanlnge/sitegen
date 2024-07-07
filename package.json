@@ -1,0 +1,17 @@
+{
+  "name": "sitegen",
+  "version": "1.0.0",
+  "description": "Generate website from template based on instagram page",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "tsc && node dist/index"
+  },
+  "author": "Sean Lange",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "openai": "^4.52.3",
+    "puppeteer": "^22.12.1"
+  }
+}
