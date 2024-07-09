@@ -31,89 +31,75 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Build = void 0;
-const openai_1 = __importDefault(require("openai"));
 require('dotenv').config();
-const scraper_1 = require("./scraper");
 const fs = __importStar(require("fs"));
-const CLIENT_INSTAGRAM_HANDLE = "ocean.rayz";
-const openai = new openai_1.default({
-    apiKey: process.env['OPENAI_API_KEY'],
-});
-class MessageChain {
-    constructor() {
-        this.chain = [];
-    }
-    addUserMessage(text, ...images) {
-        const content = [{ type: "text", text }];
-        if (images)
-            content.push(...images);
-        this.chain.push({ role: 'user', content });
-    }
-    addModelMessage(text) {
-        this.chain.push({ role: 'assistant', content: text });
-    }
-    getChain(start = 0, end = this.chain.length) {
-        return this.chain.slice(start, end);
-    }
-    queryModel(model = 'gpt-4o', start = 0, end = this.chain.length) {
-        var _a, _b, _c;
-        return __awaiter(this, void 0, void 0, function* () {
-            const messages = this.getChain(start, end);
-            const resp = (_c = (_b = (_a = (yield openai.chat.completions.create({ messages, model }))) === null || _a === void 0 ? void 0 : _a.choices[0]) === null || _b === void 0 ? void 0 : _b.message) === null || _c === void 0 ? void 0 : _c.content;
-            if (!resp)
-                throw new Error('Model query failed');
-            return resp;
-        });
-    }
-    static ToImageURL(url) {
-        return {
-            type: "image_url",
-            image_url: { "url": url }
-        };
-    }
-    static ToImagesURL(urls) {
-        return urls.map(url => this.ToImageURL(url));
-    }
-    static ToImageB64(url) {
-        const bufferStr = fs.readFileSync(url).toString('base64');
-        const extension = url.split('.').pop();
-        return {
-            type: "image_url",
-            image_url: { "url": `data:image/${extension};base64,${bufferStr}` }
-        };
-    }
-    static ToImagesB64(urls) {
-        return urls.map(url => this.ToImageB64(url));
-    }
-}
-function Build() {
+const utils_1 = require("./utils");
+const messagechain_1 = require("./messagechain");
+const template_1 = require("./template");
+const start = Date.now();
+const log = (text) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
+function Build(igHandle) {
     return __awaiter(this, void 0, void 0, function* () {
-        const igdata = yield (0, scraper_1.instagramScraper)(CLIENT_INSTAGRAM_HANDLE);
-        console.log("IG Handle scraped lfg");
-        const textPrompt = `I will give you the Instagram page for @${CLIENT_INSTAGRAM_HANDLE}. Pretend you are this user and you are wanting a simple landing page for your Instagram profile. Explain what you would like in such a website, such as the theme, the style, and what information to put into the site. <bio>${igdata.bio}</bio>`;
+        //const igdata = await instagramScraper(igHandle) as Record<string, any>;
+        //fs.writeFile("igdata.json", JSON.stringify(igdata), () => {});
+        const igdata = JSON.parse(fs.readFileSync("igdata.json").toString());
+        log("Instagram scraped, choosing template");
+        const textPrompt = `I will give you the Instagram page for @${igHandle}. Pretend you are this user and you are wanting a simple landing page for your Instagram profile. This website will exclusively be a static single page landing website to showcase the client's content. Explain what you would like in such a website, such as the theme, the style, and what information to put into the site. <bio>${igdata.bio}</bio>`;
         // Create list of images for model to parse
-        const images = MessageChain.ToImagesURL([igdata.profilePicture, ...igdata.thumbnails.slice(0, 8)]);
+        const images = messagechain_1.MessageChain.ToImagesURL([igdata.profilePicture, ...igdata.thumbnails.slice(0, 7)]);
         // Array full of chronological messages sent between model and script
-        const messageChain = new MessageChain();
-        messageChain.addUserMessage(textPrompt, ...images);
+        const messageChain = new messagechain_1.MessageChain({ saveLog: true, logPath: 'log.txt' });
+        yield messageChain.addUserMessage(textPrompt, ...images);
         // Get prefered design for website
         const siteDesign = yield messageChain.queryModel();
-        messageChain.addModelMessage(siteDesign);
-        console.log(siteDesign);
-        // Share pictures of template to model and find best suited site as well as best suited theme
-        const templateImages = MessageChain.ToImagesB64([__dirname + '/../../media/directive.png', __dirname + '/../../media/strata.png']);
-        const templatePrompt = `I have 2 website templates to choose from, Directive, and Strata. Pick which website template would work the best with this client, as well as the best color palette that would work with this client. I will provide you the JSON, and all you have to do is fill it out and return. <json>{ "templateName": "directive" | "strata", "primaryColor": string, "secondaryColor1": string, "secondaryColor2": string }</json>. Now fill out the json <json>`;
-        messageChain.addUserMessage(templatePrompt, ...templateImages);
+        yield messageChain.addModelMessage(siteDesign);
+        log("Prefered design found, choosing template");
+        // Share pictures of template to model and find best suited site
+        const templateImages = messagechain_1.MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png']);
+        const templatePrompt = `I have 2 website templates to choose from, Directive, and Strata. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" }</json>`;
+        yield messageChain.addUserMessage(templatePrompt, ...templateImages);
         const design = yield messageChain.queryModel();
-        console.log(design);
-        messageChain.addModelMessage(design);
-        // Share html code and ask to change template to fit best
-        // Change theme and template in css and html to fit the website the best
+        const designJSON = (0, utils_1.jsonParse)(design);
+        messageChain.chain.pop(); // we dont need that guy anymore
+        log("Template chosen, describing images");
+        // Get code for specific design
+        const siteName = designJSON["templateName"];
+        if (siteName != "directive" && siteName != "strata")
+            throw new Error("broooo mf made up its own template");
+        const template = new template_1.TemplateBuilder(siteName);
+        // Fill images inside website
+        const imageDescriptions = yield messageChain.describeImagesAsync(images.slice(1), "Describe this image in a paragraph, including the color scheme, the main item present in this image, and the overall feeling that this image presents.");
+        const imageMap = {};
+        imageDescriptions.forEach((imageDesc, index) => imageMap["image" + index] = imageDesc);
+        log("Images described, placing images");
+        const imageFillPrompt = `I will give you a picture of the website template that would work best to match this client's needs. I will also give you a list of images and their respective descriptions. Choose which images should go into which spots to make the best website for the client. Also write a short alt text describing the image. Respond in JSON adhering to the following format <json>{ "IMAGE_A": { "title": "string representing which image goes in IMAGE_A", "alt": "short alt text summarizing description" }, "IMAGE_B": ... }</json>. Here are the images: <json>${imageMap}</json>`;
+        yield messageChain.addUserMessage(imageFillPrompt, messagechain_1.MessageChain.ToImageB64(`templates/${siteName}/showcase.png`));
+        const fill = yield messageChain.queryModel();
+        yield messageChain.addModelMessage(fill);
+        log("Images placed, building website");
+        const fillJSON = (0, utils_1.jsonParse)(fill);
+        const imageTags = {};
+        for (let i = 0; i < Object.keys(fillJSON).length; i++) {
+            const image = Object.keys(fillJSON)[i];
+            imageTags[image] = {
+                source: images.slice(1)[i].image_url.url,
+                alt: fillJSON[image].alt,
+            };
+        }
+        template.setImages(imageTags);
+        // Share HTML code and ask to change template to fit best
+        const websitePrompt = `I will give you the HTML code to the website template. Alter this template's text to make the best possible website for the client. This will be the finished product so make sure that everything is filled out. You must follow the rules exactly. Here is the template: <HTMLCode>${template.html}</HTMLCode> <rules>Do not alter any image tags. Do not change the src of an image tag. Respond in XML format as such: <HTMLCode></HTMLCode>. Do not leave any of the filler, lorem ipsum, text.</rules>`;
+        yield messageChain.addUserMessage(websitePrompt);
+        const website = yield messageChain.queryModel();
+        // Svae HTML and build template
+        const adjustedHTML = (0, utils_1.xmlParse)(website, "HTMLCode");
+        if (adjustedHTML == null)
+            throw new Error("mf forgot to write HTML");
+        template.setHTML(adjustedHTML);
+        yield template.build();
+        log("Website built");
     });
 }
 exports.Build = Build;

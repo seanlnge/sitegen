@@ -1,3 +1,4 @@
 import { Build } from "./src";
 
-Build();
+const CLIENT_INSTAGRAM_HANDLE = "ocean.rayz";
+Build(CLIENT_INSTAGRAM_HANDLE);

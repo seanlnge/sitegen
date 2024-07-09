@@ -35,7 +35,7 @@ function instagramScraper(handle) {
         console.log('Loading and scraping page for @' + handle);
         yield page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
         yield sleep(1000);
-        return yield page.evaluate(() => {
+        const igdata = yield page.evaluate(() => {
             const images = Array.from(document.querySelectorAll('img'));
             const ppurl = images[3].src;
             const thumbnails = images.filter(x => x.classList.length == 6).map(x => x.src);
@@ -46,6 +46,8 @@ function instagramScraper(handle) {
                 thumbnails,
             };
         });
+        yield browser.close();
+        return igdata;
     });
 }
 exports.instagramScraper = instagramScraper;
