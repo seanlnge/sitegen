@@ -12,22 +12,52 @@ export class TemplateBuilder {
     templateName: TemplateName;
     html: string;
     css: string;
-    imageMapping: Map<string, TemplateImage>;
+    imageDownloads: Map<string, string>;
+    entryPoints: Map<string, string>;
 
     constructor(template: TemplateName) {
         this.templateName = template;
         this.html = fs.readFileSync(`templates/${template}/index.html`).toString();
         this.css = fs.readFileSync(`templates/${template}/assets/css/main.css`).toString();
-        this.imageMapping = new Map<string, TemplateImage>();
+
+        this.imageDownloads = new Map<string, string>();
+        this.entryPoints = new Map<string, string>();
+
+        // Populate this.entryPoints with all entry names found in HTML and CSS
+        let index = 0;
+        while(this.html.slice(index).indexOf("$") !== -1) {
+            const start = index + this.html.slice(index).indexOf("$") + 1;
+            const end = start + this.html.slice(start).indexOf("$");
+
+            this.entryPoints.set(this.html.slice(start, end), "");
+            index = end + 1;
+        }
+
+        index = 0;
+        while(this.css.slice(index).indexOf("$") !== -1) {
+            const start = index + this.css.slice(index).indexOf("$") + 1;
+            const end = start + this.css.slice(start).indexOf("$");
+
+            this.entryPoints.set(this.css.slice(start, end), "");
+            index = end + 1;
+        }
     }
 
-    setHTML(html: string) {
-        this.html = html;
-    }
-
-    setImages(images: { [key: string]: TemplateImage }) {
+    setImages(images: { [key: string]: string }) {
         for(const image in images) {
-            this.imageMapping.set(image.toLowerCase(), images[image]);
+            this.imageDownloads.set(image, images[image]);
+            this.entryPoints.set(`${image}_SRC`, `images/${image}.jpg`);
+        }
+    }
+
+    getEntryNameList() {
+        const b = Array.from(this.entryPoints.keys());
+        return b.filter(x => !/IMAGE_._SRC/.test(x));
+    }
+
+    setEntryPoints(entries: Map<string, string>) {
+        for(const entry of entries.keys()) {
+            this.entryPoints.set(entry, entries.get(entry)!);
         }
     }
 
@@ -64,63 +94,20 @@ export class TemplateBuilder {
             );
         }
 
-        // Add images to build/images folder and alter img tags in HTML
-        let index = /<img src="/.exec(this.html)?.index;
-        console.log(this.imageMapping, this.html);
-        while(index) {
-            // Parentheses are index+10 and index+17: <img src="(I)MAGE_B(") alt=...
-            const htmlSrc = this.html.slice(index!+10, index!+17).toLowerCase();
-            const image = this.imageMapping.get(htmlSrc);
-            console.log(htmlSrc, image);
-            if(!image) {
-                index++;
-                continue;
-            }
-            console.log(image);
-
+        // Add images to build/images folder
+        for(const [imageName, source] of this.imageDownloads.entries()) {
             const imgData = await axios({
                 method: "GET",
-                url: image.source,
+                url: source,
                 responseType: "stream"
             });
-            await imgData.data.pipe(fs.createWriteStream(`build/images/html${index}.jpg`));
-
-            const end = index! + this.html.slice(index).indexOf(">") + 1;
-            const startStr = `${this.html.slice(0, index)}<img src="images/html${index}.jpg" alt="${image.alt}" />`;
-            const endStr = this.html.slice(end);
-
-            if(/<img src="/.test(endStr)) index = startStr.length + /<img src="/.exec(endStr)!.index;
-            else index = undefined;
-
-            this.html = startStr + endStr;
+            await imgData.data.pipe(fs.createWriteStream(`build/images/${imageName}.jpg`));
         }
 
-        // Add images to build/images folder and alter url in CSS
-        let cssIndex = /url\("IMAGE_/.exec(this.css)?.index;
-        while(cssIndex) {
-            // Parentheses are cssIndex+5 and cssIndex+12: url("IMAGE_A")
-            const cssSrc = this.css.slice(cssIndex!+5, cssIndex!+12).toLowerCase();
-            const image = this.imageMapping.get(cssSrc);
-            if(!image) {
-                cssIndex++;
-                continue;
-            }
-
-            const imgData = await axios({
-                method: "GET",
-                url: image.source,
-                responseType: "stream"
-            });
-            await imgData.data.pipe(fs.createWriteStream(`build/images/css${cssIndex}.jpg`));
-
-            const end = cssIndex! + this.css.slice(cssIndex).indexOf(")") + 1;
-            const startStr = `${this.css.slice(0, cssIndex)}url("../../images/css${cssIndex}.jpg")`;
-            const endStr = this.css.slice(end);
-            
-            if(/url\("IMAGE_/.test(endStr)) cssIndex = startStr.length + /url\("IMAGE_/.exec(endStr)!.index;
-            else cssIndex = undefined;
-
-            this.css = startStr + endStr;
+        // Alter HTML and CSS to include data entry
+        for(const [entryName, entry] of this.entryPoints.entries()) {
+            while(this.html.indexOf(`$${entryName}$`) !== -1) this.html = this.html.replace(`$${entryName}$`, entry);
+            while(this.css.indexOf(`$${entryName}$`) !== -1) this.css = this.css.replace(`$${entryName}$`, entry);
         }
 
         // Finalize build

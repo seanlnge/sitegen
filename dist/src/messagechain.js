@@ -55,7 +55,7 @@ class MessageChain {
         return __awaiter(this, void 0, void 0, function* () {
             this.logText += "\n" + Date.now() + ": " + title;
             if (data)
-                this.logText += " > " + JSON.stringify(data).slice(0, 1000);
+                this.logText += " > " + JSON.stringify(data).slice(0, 10000);
             if (this.saveLog)
                 yield fs.promises.writeFile(this.logPath, this.logText);
         });
@@ -80,7 +80,7 @@ class MessageChain {
     getChain(start = 0, end = this.chain.length) {
         return __awaiter(this, void 0, void 0, function* () {
             const retrieval = this.chain.slice(start, end);
-            yield this.writeLog("Chain Retreived from Indices " + start + " to " + end, retrieval);
+            yield this.writeLog("Chain Retreived from Indices " + start + " to " + end);
             return retrieval;
         });
     }
@@ -88,7 +88,7 @@ class MessageChain {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const messages = yield this.getChain(start, end);
-            yield this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end, messages);
+            yield this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
             const resp = (_c = (_b = (_a = (yield openai.chat.completions.create({ messages, model }))) === null || _a === void 0 ? void 0 : _a.choices[0]) === null || _b === void 0 ? void 0 : _b.message) === null || _c === void 0 ? void 0 : _c.content;
             if (!resp) {
                 yield this.writeLog("Model '" + model + "' Query Failed on Chain Indices " + start + " to " + end);

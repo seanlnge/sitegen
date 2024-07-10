@@ -29,7 +29,7 @@ export class MessageChain {
 
     private async writeLog(title: string, data?: any) {
         this.logText += "\n" + Date.now() + ": " + title;
-        if(data) this.logText += " > " + JSON.stringify(data).slice(0, 1000);
+        if(data) this.logText += " > " + JSON.stringify(data).slice(0, 10000);
         if(this.saveLog) await fs.promises.writeFile(this.logPath, this.logText);
     }
 
@@ -50,13 +50,13 @@ export class MessageChain {
 
     async getChain(start: number = 0, end: number = this.chain.length) {
         const retrieval = this.chain.slice(start, end);
-        await this.writeLog("Chain Retreived from Indices " + start + " to " + end, retrieval);
+        await this.writeLog("Chain Retreived from Indices " + start + " to " + end);
         return retrieval;
     }
 
     async queryModel(model: string = 'gpt-4o', start: number = 0, end: number = this.chain.length): Promise<string> {
         const messages = await this.getChain(start, end);
-        await this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end, messages);
+        await this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
 
         const resp = (await openai.chat.completions.create({ messages, model }))?.choices[0]?.message?.content;
         if(!resp) {
