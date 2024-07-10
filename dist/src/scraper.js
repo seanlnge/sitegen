@@ -34,7 +34,7 @@ function instagramScraper(handle) {
         yield page.click('#loginForm button[type="submit"]');
         console.log('Loading and scraping page for @' + handle);
         yield page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
-        yield sleep(1000);
+        yield sleep(2000);
         const igdata = yield page.evaluate(() => {
             const images = Array.from(document.querySelectorAll('img'));
             const ppurl = images[3].src;
