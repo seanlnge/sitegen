@@ -84,6 +84,21 @@ class MessageChain {
             return retrieval;
         });
     }
+    promptImageGenerator(prompt) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.writeLog("Image Generator Prompted", prompt);
+            const img = yield openai.images.generate({
+                model: "dall-e-3",
+                prompt,
+                n: 1,
+                size: "1024x1024",
+            });
+            if (!img)
+                throw new Error("image gen not work :(");
+            yield this.writeLog("Image Generation Success", img.data[0].url);
+            return img.data[0].url;
+        });
+    }
     queryModel(model = 'gpt-4o', start = 0, end = this.chain.length) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {

@@ -30,7 +30,7 @@ export async function instagramScraper(handle: string) {
     const igdata =  await page.evaluate(() => {
         const images = Array.from(document.querySelectorAll('img'));
         const ppurl = images[3].src;
-        const thumbnails = images.filter(x => x.classList.length == 6).map(x => x.src);
+        const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
 
         const bioElement = document.querySelector('section > div > span > div > span');
         

@@ -38,7 +38,7 @@ function instagramScraper(handle) {
         const igdata = yield page.evaluate(() => {
             const images = Array.from(document.querySelectorAll('img'));
             const ppurl = images[3].src;
-            const thumbnails = images.filter(x => x.classList.length == 6).map(x => x.src);
+            const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
             const bioElement = document.querySelector('section > div > span > div > span');
             return {
                 profilePicture: ppurl,

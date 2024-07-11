@@ -1,9 +1,8 @@
 require('dotenv').config();
 import { instagramScraper } from './scraper';
-import * as fs from 'fs';
-import { jsonParse, xmlParse } from './utils';
+import { jsonParse } from './utils';
 import { MessageChain } from './messagechain';
-import { TemplateBuilder, TemplateImage } from './template';
+import { TemplateBuilder } from './template';
 
 const start = Date.now();
 const log = (text: string) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
@@ -17,7 +16,7 @@ export async function Build(igHandle: string) {
     const textPrompt = `I will give you the Instagram page for @${igHandle}. Pretend you are this user. Describe the purpose of your Instagram page, as well as what you would display if you were to turn it into a static single page website. <bio>${igdata.bio}</bio>`;
     
     // Create list of images for model to parse
-    const images = MessageChain.ToImagesURL([igdata.profilePicture, ...igdata.thumbnails.slice(0, 7)]);
+    const images = MessageChain.ToImagesURL(igdata.thumbnails.slice(0, 10).map((x: any) => x.src));
 
     // Array full of chronological messages sent between model and script
     const messageChain = new MessageChain({ saveLog: true, logPath: 'log.txt' });
@@ -44,25 +43,34 @@ export async function Build(igHandle: string) {
 
     // Fill images inside website
     log("Template chosen, describing images");
-    const toDescribe = images.slice(1);
-    const imgdesc = await messageChain.describeImagesAsync(toDescribe, "Describe this image in a paragraph, including the color scheme, the main item present in this image, and the overall feeling that this image presents. Also give a short title for this image.");
-    const imageDescriptions = imgdesc.map((x, i) => ({ description: x, url: `image${i}.jpg`, source: "" }));
-    imageDescriptions.forEach((x, i) => x["url"] = "image" + i + ".jpg");
+    const imgdesc = await messageChain.describeImagesAsync(images, "Describe this image in a paragraph, including the color scheme, the main item present in this image, and the overall feeling that this image presents. Also give a short title for this image.");
+    const imageDescriptions: Record<string, string>[] = imgdesc.map((x, i) => ({
+        description: x,
+        url: `image${i}.jpg`,
+        caption: igdata.thumbnails[i].alt
+    }));
 
     log("Images described, placing images");
-    const imageFillPrompt = `I will give you a picture of the website template that would work best to match this client's needs. I will also give you a list of images and their respective descriptions. Choose which images should go into which spots to make the best website for the client. Follow the rules exactly. <rules>Do not alter the url of any images at all. Respond in JSON adhering to the following format { "IMAGE_A": url of image that best fits here, "IMAGE_B": ... }</rules>. Here are the image descriptions: ${JSON.stringify(imageDescriptions)}`;
+    const imageFillPrompt = `I will give you a picture of the website template that would work best to match this client's needs. I will also give you a list of the client's instagram thumbnails and their caption. Choose which images should go into which spots to make the best website for the client. If no image fits into the spot, return a description of what type of image would fit instead. Follow the rules exactly. <rules>Do not alter the url of any images at all. Respond in JSON adhering to the following format { "IMAGE_A": string, , ... }</rules>\n<example>{ "IMAGE_A": "image3.jpg", "IMAGE_B": "picture of a palm tree in front of a beach", "IMAGE_C": "image2.jpg" }</example>\nHere are the images: ${JSON.stringify(imageDescriptions)}`;
     await messageChain.addUserMessage(imageFillPrompt, MessageChain.ToImageB64(`templates/${siteName}/showcase.png`));
     const fill = await messageChain.queryModel();
     await messageChain.addModelMessage(fill);
 
     const fillJSON = jsonParse(fill);
-    imageDescriptions.forEach((x, i) => x["source"] = toDescribe[i].image_url.url);
+    imageDescriptions.forEach((x, i) => x["source"] = images[i].image_url.url);
 
     const imageTags: { [key: string]: string } = {};
     for(const url in fillJSON) {
-        const img = imageDescriptions.find(x => x["url"] == fillJSON[url]);
-        if(!img) continue;
-        imageTags[url] = img["source"];
+        const bestFit = fillJSON[url];
+        const img = imageDescriptions.find(x => x["url"] == bestFit);
+        if(img) {
+            imageTags[url] = img["source"];
+            continue;
+        }
+
+        // use dalle 3 to make image
+        log("Prompting image generation");
+        imageTags[url] = await messageChain.promptImageGenerator(bestFit);
     }
 
     imageTags["IMAGE_Z"] = igdata.profilePicture;

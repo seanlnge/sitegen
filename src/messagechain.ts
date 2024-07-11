@@ -54,6 +54,21 @@ export class MessageChain {
         return retrieval;
     }
 
+    async promptImageGenerator(prompt: string): Promise<string> {
+        await this.writeLog("Image Generator Prompted", prompt);
+
+        const img = await openai.images.generate({
+            model: "dall-e-3",
+            prompt,
+            n: 1,
+            size: "1024x1024",
+        });
+        if(!img) throw new Error("image gen not work :(");
+        
+        await this.writeLog("Image Generation Success", img.data[0].url);
+        return img.data[0].url!;
+    }
+
     async queryModel(model: string = 'gpt-4o', start: number = 0, end: number = this.chain.length): Promise<string> {
         const messages = await this.getChain(start, end);
         await this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
