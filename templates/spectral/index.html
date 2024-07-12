@@ -1,0 +1,142 @@
+<!DOCTYPE HTML>
+<!--
+EXTRA INSTRUCTIONS FOR MODEL:
+All entry points will be inside of dollar signs
+If an entry point title is prefixed with "POTENTIAL", only add if the extra information would benefit the website
+If you decide not to include an entry point prefixed with "POTENTIAL", return an empty string ""
+IMAGE_X_SRC must not be edited, do not add into final JSON
+Utilize other HTML tags inside of data entry points if it would benefit the website
+Although you may use HTML tags, you may not close any tags that you have not opened previously in the same entry
+After data entry, this will be the final rendition of the website, so ensure that the website will meet the client's needs.
+-->
+<html>
+	<head>
+		<title>$SITE_TITLE$</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+        <link rel="icon" href="$IMAGE_Z_SRC$"  />
+	</head>
+	<body class="landing is-preload">
+
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
+
+				<!-- Header -->
+					<header id="header" class="alt">
+						<h1><a href="index.html">$SITE_TITLE$</a></h1>
+                        <nav id="nav">
+							<ul>
+								<li class="special">
+									<a href="#menu" class="menuToggle"><span>Menu</span></a>
+									<div id="menu">
+										<ul>
+											<li><a href="#header">Home</a></li>
+											<li><a href="https://instagram.com/$INSTAGRAM_HANDLE$">Instagram</a></li>
+                                            $POTENTIAL_EXTRA_MENU_BUTTONS$
+										</ul>
+									</div>
+								</li>
+							</ul>
+						</nav>
+					</header>
+
+				<!-- Banner -->
+					<section id="banner">
+						<div class="inner">
+							<h2>$SITE_TITLE$</h2>
+							<p>$MAIN_BLURB$</p>
+						</div>
+						<a href="#one" class="more scrolly">See More</a>
+					</section>
+
+				<!-- One -->
+					<section id="one" class="wrapper style1 special">
+						<div class="inner">
+							<header class="major">
+								<h2>$SUBTITLE_1$</h2>
+								<p>$PARAGRAPH_1$</p>
+							</header>
+						</div>
+					</section>
+
+				<!-- Two -->
+					<section id="two" class="wrapper alt style2">
+						<section class="spotlight">
+							<div class="image"><img src="$IMAGE_B_SRC$" alt="$IMAGE_B_ALT$" /></div><div class="content">
+								<h2>$SUBTITLE_2$</h2>
+								<p>$PARAGRAPH_2$</p>
+							</div>
+						</section>
+						<section class="spotlight">
+							<div class="image"><img src="$IMAGE_C_SRC$" alt="$IMAGE_C_ALT$" /></div><div class="content">
+								<h2>$SUBTITLE_3$</h2>
+								<p>$PARAGRAPH_3$</p>
+							</div>
+						</section>
+						<section class="spotlight">
+							<div class="image"><img src="$IMAGE_D_SRC$" alt="$IMAGE_D_ALT$" /></div><div class="content">
+								<h2>$SUBTITLE_4$</h2>
+								<p>$PARAGRAPH_4$</p>
+							</div>
+						</section>
+					</section>
+
+				<!-- Three -->
+					<section id="three" class="wrapper style3 special">
+						<div class="inner">
+							<header class="major">
+								<h2>$SUBTITLE_5$</h2>
+								<p>$PARAGRAPH_5$</p>
+							</header>
+							<ul class="features">
+								<li class="icon $FA_ICON_NAME_1$">
+									<h3>$SUBTITLE_6$</h3>
+									<p>$PARAGRAPH_6$</p>
+								</li>
+								<li class="icon solid $FA_ICON_NAME_2$">
+									<h3>$SUBTITLE_7$</h3>
+									<p>$PARAGRAPH_7$</p>
+								</li>
+							</ul>
+						</div>
+					</section>
+
+				<!-- CTA -->
+					<section id="cta" class="wrapper style4">
+						<div class="inner">
+							<header>
+								<h2>$BUTTON_INFO_TITLE$</h2>
+								<p>$BUTTON_INFO_PARAGRAPH$</p>
+							</header>
+							<ul class="actions stacked">
+								<li><a href="$PRIMARY_BUTTON_LINK$" class="button fit primary">$PRIMARY_BUTTON$</a></li>
+								<li><a href="$SECONDARY_BUTTON_LINK$" class="button fit">$SECONDARY_BUTTON$</a></li>
+							</ul>
+						</div>
+					</section>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<ul class="icons">
+							<li><a href="https://instagram.com/$INSTAGRAM_HANDLE$" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
+                            $POTENTIAL_EXTRA_ICONS$
+                        </ul>
+						<ul class="copyright">
+							<li>$COPYRIGHT$</li>
+						</ul>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>

@@ -89,17 +89,16 @@ class TemplateBuilder {
             yield fs.promises.mkdir("build/assets/css");
             yield fs.promises.mkdir("build/assets/css/images");
             yield fs.promises.mkdir("build/assets/js");
-            yield fs.promises.mkdir("build/assets/sass");
-            yield fs.promises.mkdir("build/assets/sass/libs");
             // Add all global files found in all templates
             yield fs.promises.cp("templates/global/webfonts", "build/assets/webfonts", { recursive: true });
             yield fs.promises.cp("templates/global/css", "build/assets/css", { recursive: true });
             yield fs.promises.cp("templates/global/js", "build/assets/js", { recursive: true });
-            yield fs.promises.cp("templates/global/sass/libs", "build/assets/sass/libs", { recursive: true });
             // Move all files specific to the template
             const TEMPLATE_MAP = {
                 "directive": TemplateBuilder.DIRECTIVE_COPYFILE_STRUCTURE,
-                "strata": TemplateBuilder.STRATA_COPYFILE_STRUCTURE
+                "strata": TemplateBuilder.STRATA_COPYFILE_STRUCTURE,
+                "dimension": TemplateBuilder.DIMENSION_COPYFILE_STRUCTURE,
+                "spectral": TemplateBuilder.SPECTRAL_COPYFILE_STRUCTURE,
             };
             for (const FILE of TEMPLATE_MAP[this.templateName]) {
                 yield fs.promises.copyFile(`templates/${this.templateName}/${FILE}`, `build/${FILE}`);
@@ -137,11 +136,23 @@ TemplateBuilder.DIRECTIVE_COPYFILE_STRUCTURE = [
     "assets/css/images/top-3200.svg",
     "assets/js/main.js",
     "assets/js/util.js",
-    "assets/sass/main.scss",
 ];
 TemplateBuilder.STRATA_COPYFILE_STRUCTURE = [
     "assets/js/main.js",
     "assets/js/util.js",
-    "assets/sass/main.scss",
     "assets/css/images/overlay.png"
+];
+TemplateBuilder.DIMENSION_COPYFILE_STRUCTURE = [
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "images/overlay.png",
+];
+TemplateBuilder.SPECTRAL_COPYFILE_STRUCTURE = [
+    "assets/css/images/arrow.svg",
+    "assets/css/images/bars.svg",
+    "assets/css/images/close.svg",
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "assets/js/jquery.scrollex.min.js",
+    "assets/js/jquery.scrolly.min.js"
 ];

@@ -28,8 +28,8 @@ export async function Build(igHandle: string) {
 
     // Share pictures of template to model and find best suited site
     log("Prefered design found, choosing template");
-    const templateImages = MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png']);
-    const templatePrompt = `I have 2 website templates to choose from, Directive, and Strata. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" }</json>`;
+    const templateImages = MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png']);
+    const templatePrompt = `I have 3 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>`;
     await messageChain.addUserMessage(templatePrompt, ...templateImages);
     
     const design = await messageChain.queryModel();
@@ -38,12 +38,12 @@ export async function Build(igHandle: string) {
 
     // Get code for specific design
     const siteName = designJSON["templateName"];
-    if(siteName != "directive" && siteName != "strata") throw new Error("broooo mf made up its own template");
+    if(siteName != "directive" && siteName != "strata" && siteName != "dimension" && siteName != "spectral") throw new Error("broooo mf made up its own template");
     const template = new TemplateBuilder(siteName);
 
     // Fill images inside website
     log("Template chosen, describing images");
-    const imgdesc = await messageChain.describeImagesAsync(images, "Describe this image in a paragraph, including the color scheme, the main item present in this image, and the overall feeling that this image presents. Also give a short title for this image.");
+    const imgdesc = await messageChain.describeImagesAsync(images, "Describe this image in a paragraph, including the color scheme, the main item present in this image, the overall feeling that this image presents, as well as where on a website that this image might make sense.");
     const imageDescriptions: Record<string, string>[] = imgdesc.map((x, i) => ({
         description: x,
         url: `image${i}.jpg`,

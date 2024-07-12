@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import axios from 'axios';
 
-export type TemplateName = "directive" | "strata";
+export type TemplateName = "directive" | "strata" | "dimension" | "spectral";
 
 export type TemplateImage = {
     source: string;
@@ -73,19 +73,18 @@ export class TemplateBuilder {
         await fs.promises.mkdir("build/assets/css");
         await fs.promises.mkdir("build/assets/css/images");
         await fs.promises.mkdir("build/assets/js");
-        await fs.promises.mkdir("build/assets/sass");
-        await fs.promises.mkdir("build/assets/sass/libs");
 
         // Add all global files found in all templates
         await fs.promises.cp("templates/global/webfonts", "build/assets/webfonts", { recursive: true });
         await fs.promises.cp("templates/global/css", "build/assets/css", { recursive: true });
         await fs.promises.cp("templates/global/js", "build/assets/js", { recursive: true });
-        await fs.promises.cp("templates/global/sass/libs", "build/assets/sass/libs", { recursive: true });
 
         // Move all files specific to the template
         const TEMPLATE_MAP = {
             "directive": TemplateBuilder.DIRECTIVE_COPYFILE_STRUCTURE,
-            "strata": TemplateBuilder.STRATA_COPYFILE_STRUCTURE
+            "strata": TemplateBuilder.STRATA_COPYFILE_STRUCTURE,
+            "dimension": TemplateBuilder.DIMENSION_COPYFILE_STRUCTURE,
+            "spectral": TemplateBuilder.SPECTRAL_COPYFILE_STRUCTURE,
         }
         for(const FILE of TEMPLATE_MAP[this.templateName]) {
             await fs.promises.copyFile(
@@ -125,12 +124,24 @@ export class TemplateBuilder {
         "assets/css/images/top-3200.svg",
         "assets/js/main.js",
         "assets/js/util.js",
-        "assets/sass/main.scss",
     ];
     static STRATA_COPYFILE_STRUCTURE = [
         "assets/js/main.js",
         "assets/js/util.js",
-        "assets/sass/main.scss",
         "assets/css/images/overlay.png"
+    ];
+    static DIMENSION_COPYFILE_STRUCTURE = [
+        "assets/js/main.js",
+        "assets/js/util.js",
+        "images/overlay.png",
+    ];
+    static SPECTRAL_COPYFILE_STRUCTURE = [
+        "assets/css/images/arrow.svg",
+        "assets/css/images/bars.svg",
+        "assets/css/images/close.svg",
+        "assets/js/main.js",
+        "assets/js/util.js",
+        "assets/js/jquery.scrollex.min.js",
+        "assets/js/jquery.scrolly.min.js"  
     ];
 }
