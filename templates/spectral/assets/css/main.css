@@ -1379,3 +1379,18 @@ body.landing #page-wrapper{
 body.landing #footer{
     background-color:rgba(29,36,42,.9)
 }
+
+body.is-menu-visible #page-wrapper {
+    opacity: 0.35;
+}
+
+body.is-menu-visible #page-wrapper:before {
+    display: block;
+}
+
+body.is-menu-visible #menu {
+    -moz-transform: translateX(0);
+    -webkit-transform: translateX(0);
+    -ms-transform: translateX(0);
+    transform: translateX(0);
+}

@@ -3,6 +3,7 @@
 EXTRA INSTRUCTIONS FOR MODEL:
 All entry points will be inside of dollar signs
 If an entry point title is prefixed with "POTENTIAL", only add if the extra information would benefit the website
+If you decide not to include an entry point prefixed with "POTENTIAL", return an empty string ""
 IMAGE_X_SRC must not be edited, do not add into final JSON
 Utilize other HTML tags inside of data entry points if it would benefit the website
 Although you may use HTML tags, you may not close any tags that you have not opened previously in the same entry
@@ -10,78 +11,128 @@ After data entry, this will be the final rendition of the website, so ensure tha
 -->
 <html>
 	<head>
-		<title>Ocean Rayz - Beach Inspired Stickers</title>
+		<title>Ocean Rayz</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
-        <link rel="icon" href="images/IMAGE_Z.jpg" />
+        <link rel="icon" href="images/IMAGE_Z.jpg"  />
 	</head>
-	<body class="is-preload">
+	<body class="landing is-preload">
 
-		<!-- Header -->
-			<div id="header">
-                <img class="logo icon" src="images/IMAGE_Z.jpg" />
-				<h1>Welcome to Ocean Rayz</h1>
-				<p>Celebrate the best of coastal life with our unique, handcrafted stickers. <a href="https://instagram.com/ocean.rayz">@ocean.rayz</a>
-				<br />
-				Discover our latest designs and stay updated on everything beachy.</p>
-			</div>
+		<!-- Page Wrapper -->
+			<div id="page-wrapper">
 
-		<!-- Main -->
-			<div id="main">
+				<!-- Header -->
+					<header id="header" class="alt">
+						<h1><a href="index.html">Ocean Rayz</a></h1>
+                        <nav id="nav">
+							<ul>
+								<li class="special">
+									<a href="#menu" class="menuToggle"><span>Menu</span></a>
+									<div id="menu">
+										<ul>
+											<li><a href="#header">Home</a></li>
+											<li><a href="https://instagram.com/ocean.rayz">Instagram</a></li>
+                                            
+										</ul>
+									</div>
+								</li>
+							</ul>
+						</nav>
+					</header>
 
-				<header class="major container medium">
-					<h2>Keep the Ocean Vibes Alive!</h2>
-					<p>Find a variety of fun and vibrant stickers inspired by the beauty of the ocean. Each design is lovingly crafted to bring a piece of the beach into your everyday life.</p>
-				</header>
+				<!-- Banner -->
+					<section id="banner">
+						<div class="inner">
+							<h2>Ocean Rayz</h2>
+							<p>Embrace the beach vibes with our unique stickers</p>
+						</div>
+						<a href="#one" class="more scrolly">See More</a>
+					</section>
 
-				<div class="box alt container">
-					<section class="feature left">
-						<a href="images/IMAGE_B.jpg" class="image icon solid fa-signal"><img src="images/IMAGE_B.jpg" alt="Row of Surfboards" /></a>
-						<div class="content">
-							<h3>Shop Our Stickers</h3>
-							<p>Step into Nekton Surf Shop and discover our exclusive, beach-themed sticker designs. Perfect for decorating your gear and sharing the ocean love.</p>
+				<!-- One -->
+					<section id="one" class="wrapper style1 special">
+						<div class="inner">
+							<header class="major">
+								<h2>Welcome to Ocean Rayz</h2>
+								<p>Discover our collection of beach-inspired stickers designed to bring a touch of the ocean to your everyday life.</p>
+							</header>
 						</div>
 					</section>
-					<section class="feature right">
-						<a href="images/IMAGE_C.jpg" class="image icon solid fa-code"><img src="images/IMAGE_C.jpg" alt="Valentine's Day Promotion" /></a>
-						<div class="content">
-							<h3>Upcoming Events</h3>
-							<p>Join our exciting Valentine's Day special! Keep an eye out for new design drops and participate in our giveaways for a chance to win amazing prizes.</p>
+
+				<!-- Two -->
+					<section id="two" class="wrapper alt style2">
+						<section class="spotlight">
+							<div class="image"><img src="images/IMAGE_B.jpg" alt="Serene beach scene during a beautiful sunrise" /></div><div class="content">
+								<h2>Celebrate Summer</h2>
+								<p>Celebrate (almost) summer with Ocean Rayz stickers. Buy today at Nekton Surf Shop.</p>
+							</div>
+						</section>
+						<section class="spotlight">
+							<div class="image"><img src="images/IMAGE_C.jpg" alt="Vibrant close-up of Ocean Rayz Valentine's Day stickers" /></div><div class="content">
+								<h2>Valentine's Day Collection</h2>
+								<p>New Valentine's Day stickers! Keep them both together or be matching with a friend/loved one. I'll be starting a Valentine's Day giveaway tomorrow so stay tuned.</p>
+							</div>
+						</section>
+						<section class="spotlight">
+							<div class="image"><img src="images/IMAGE_D.jpg" alt="Two colorful stickers against a sunny beach backdrop" /></div><div class="content">
+								<h2>Join Our Giveaway</h2>
+								<p>It’s giveaway time again! Check out our Instagram for details on how to enter and win exciting prizes.</p>
+							</div>
+						</section>
+					</section>
+
+				<!-- Three -->
+					<section id="three" class="wrapper style3 special">
+						<div class="inner">
+							<header class="major">
+								<h2>About Our Stickers</h2>
+								<p>Our stickers are inspired by the beach and ocean life of Indian River Beach, FL. Designed by the talented @ocean_unger and available at Nekton Surf Shop.</p>
+							</header>
+							<ul class="features">
+								<li class="icon fa-star">
+									<h3>Unique Designs</h3>
+									<p>Each sticker is a unique piece of art, inspired by the beautiful coastal life.</p>
+								</li>
+								<li class="icon solid fa-heart">
+									<h3>Customer Favorites</h3>
+									<p>Check out some of the most loved designs by our customers!</p>
+								</li>
+							</ul>
 						</div>
 					</section>
-					<section class="feature left">
-						<a href="images/IMAGE_D.jpg" class="image icon solid fa-mobile-alt"><img src="images/IMAGE_D.jpg" alt="SUBTITLE_3DESCRIPTION_3DIV_TITLEDIV_PARAGRAPHBUTTONFEEDBACK_TITLEFEEDBACK_PARAGRAPH$</p>
 
-					<form method="post" action="#">
-						<div class="row">
-							<div class="col-6 col-12-mobilep">
-								<input type="text" name="name" placeholder="Name" />
-							</div>
-							<div class="col-6 col-12-mobilep">
-								<input type="email" name="email" placeholder="Email" />
-							</div>
-							<div class="col-12">
-								<textarea name="message" placeholder="Message" rows="6"></textarea>
-							</div>
-							<div class="col-12">
-								<ul class="actions special">
-									<li><input type="submit" value="Send Message" /></li>
-								</ul>
-							</div>
+				<!-- CTA -->
+					<section id="cta" class="wrapper style4">
+						<div class="inner">
+							<header>
+								<h2>Become a Part of Ocean Rayz</h2>
+								<p>Join our community and keep up with the latest updates, giveaways, and exclusive releases.</p>
+							</header>
+							<ul class="actions stacked">
+								<li><a href="https://instagram.com/ocean.rayz" class="button fit primary">Follow Us</a></li>
+								<li><a href="https://nektonsurfshop.com" class="button fit">Shop Now</a></li>
+							</ul>
 						</div>
-					</form>
+					</section>
 
-					<ul class="icons">
-						<li><a href="https://instagram.com/ocean.rayz" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
-                        $POTENTIAL_EXTRA_LINKSCOPYRIGHT$
-					</ul>
+				<!-- Footer -->
+					<footer id="footer">
+						<ul class="icons">
+							<li><a href="https://instagram.com/ocean.rayz" class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
+                            
+                        </ul>
+						<ul class="copyright">
+							<li>&copy; Ocean Rayz. All rights reserved.</li>
+						</ul>
+					</footer>
 
-				</div>
 			</div>
 
 		<!-- Scripts -->
 			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
 			<script src="assets/js/browser.min.js"></script>
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
