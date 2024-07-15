@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -15,15 +38,17 @@ const scraper_1 = require("./scraper");
 const utils_1 = require("./utils");
 const messagechain_1 = require("./messagechain");
 const template_1 = require("./template");
-const start = Date.now();
+const fs = __importStar(require("fs"));
+let start = Date.now();
 const log = (text) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
-function Build(igHandle) {
+function Build(igHandle, photoCount) {
     return __awaiter(this, void 0, void 0, function* () {
-        const igdata = yield (0, scraper_1.instagramScraper)(igHandle);
+        start = Date.now();
+        const igdata = yield (0, scraper_1.instagramScraper)(igHandle, log);
         log("Instagram scraped, choosing template");
         const textPrompt = `I will give you the Instagram page for @${igHandle}. Pretend you are this user. Describe the purpose of your Instagram page, as well as what you would display if you were to turn it into a static single page website. <bio>${igdata.bio}</bio>`;
         // Create list of images for model to parse
-        const images = messagechain_1.MessageChain.ToImagesURL(igdata.thumbnails.slice(0, 10).map((x) => x.src));
+        const images = messagechain_1.MessageChain.ToImagesURL(igdata.thumbnails.slice(0, photoCount).map((x) => x.src));
         // Array full of chronological messages sent between model and script
         const messageChain = new messagechain_1.MessageChain({ saveLog: true, logPath: 'log.txt' });
         yield messageChain.addUserMessage(textPrompt, ...images);
@@ -33,7 +58,13 @@ function Build(igHandle) {
         // Share pictures of template to model and find best suited site
         log("Prefered design found, choosing template");
         const templateImages = messagechain_1.MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png']);
-        const templatePrompt = `I have 3 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>`;
+        const templateDescriptions = JSON.stringify({
+            "directive": fs.readFileSync('templates/directive/description.txt'),
+            "strata": fs.readFileSync('templates/strata/description.txt'),
+            "dimension": fs.readFileSync('templates/dimension/description.txt'),
+            "spectral": fs.readFileSync('templates/spectral/description.txt'),
+        });
+        const templatePrompt = `I have 4 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>. Template descriptions: <descriptions>${templateDescriptions}</descriptions>`;
         yield messageChain.addUserMessage(templatePrompt, ...templateImages);
         const design = yield messageChain.queryModel();
         const designJSON = (0, utils_1.jsonParse)(design);

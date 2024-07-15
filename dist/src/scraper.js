@@ -45,19 +45,19 @@ const sleep = (ms) => new Promise(res => setTimeout(res, ms));
  * Scrapes instagram
  * @returns string[]
  */
-function instagramScraper(handle) {
+function instagramScraper(handle, log) {
     return __awaiter(this, void 0, void 0, function* () {
         const browser = yield puppeteer_1.default.launch({ headless: true });
         const page = (yield browser.pages())[0];
-        console.log('Opening instagram.com');
+        log('Opening instagram.com');
         yield page.goto("https://www.instagram.com", { waitUntil: 'networkidle2' });
-        console.log('Logging into account');
+        log('Logging into account');
         yield page.click('#loginForm input[name="username"]');
         yield page.keyboard.type(process.env['INSTA_USER'], { delay: 50 });
         yield page.click('#loginForm input[name="password"]');
         yield page.keyboard.type(process.env['INSTA_PASS'], { delay: 50 });
         yield page.click('#loginForm button[type="submit"]');
-        console.log('Loading and scraping page for @' + handle);
+        log('Loading and scraping page for @' + handle);
         yield page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
         yield sleep(2000);
         const igdata = yield page.evaluate(() => {

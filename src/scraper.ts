@@ -9,13 +9,13 @@ const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
  * Scrapes instagram
  * @returns string[]
  */
-export async function instagramScraper(handle: string) {
+export async function instagramScraper(handle: string, log: ((p: string) => void)) {
     const browser = await puppeteer.launch({ headless: true });
     const page = (await browser.pages())[0];
 
-    console.log('Opening instagram.com');
+    log('Opening instagram.com');
     await page.goto("https://www.instagram.com", { waitUntil: 'networkidle2' });
-    console.log('Logging into account');
+    log('Logging into account');
 
     await page.click('#loginForm input[name="username"]');
     await page.keyboard.type(process.env['INSTA_USER']!, { delay: 50 });
@@ -24,7 +24,7 @@ export async function instagramScraper(handle: string) {
 
     await page.click('#loginForm button[type="submit"]');
 
-    console.log('Loading and scraping page for @' + handle);
+    log('Loading and scraping page for @' + handle);
     await page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
     await sleep(2000);
 

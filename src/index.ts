@@ -3,18 +3,20 @@ import { instagramScraper, photographSite } from './scraper';
 import { jsonParse } from './utils';
 import { MessageChain } from './messagechain';
 import { TemplateBuilder } from './template';
+import * as fs from 'fs';
 
-const start = Date.now();
+let start = Date.now();
 const log = (text: string) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
 
-export async function Build(igHandle: string) {
-    const igdata = await instagramScraper(igHandle) as Record<string, any>;
+export async function Build(igHandle: string, photoCount: number) {
+    start = Date.now();
+    const igdata = await instagramScraper(igHandle, log) as Record<string, any>;
 
     log("Instagram scraped, choosing template");
     const textPrompt = `I will give you the Instagram page for @${igHandle}. Pretend you are this user. Describe the purpose of your Instagram page, as well as what you would display if you were to turn it into a static single page website. <bio>${igdata.bio}</bio>`;
     
     // Create list of images for model to parse
-    const images = MessageChain.ToImagesURL(igdata.thumbnails.slice(0, 10).map((x: any) => x.src));
+    const images = MessageChain.ToImagesURL(igdata.thumbnails.slice(0, photoCount).map((x: any) => x.src));
 
     // Array full of chronological messages sent between model and script
     const messageChain = new MessageChain({ saveLog: true, logPath: 'log.txt' });
@@ -27,7 +29,13 @@ export async function Build(igHandle: string) {
     // Share pictures of template to model and find best suited site
     log("Prefered design found, choosing template");
     const templateImages = MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png']);
-    const templatePrompt = `I have 3 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>`;
+    const templateDescriptions = JSON.stringify({
+        "directive": fs.readFileSync('templates/directive/description.txt'),
+        "strata": fs.readFileSync('templates/strata/description.txt'),
+        "dimension": fs.readFileSync('templates/dimension/description.txt'),
+        "spectral": fs.readFileSync('templates/spectral/description.txt'),
+    });
+    const templatePrompt = `I have 4 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>. Template descriptions: <descriptions>${templateDescriptions}</descriptions>`;
     await messageChain.addUserMessage(templatePrompt, ...templateImages);
     
     const design = await messageChain.queryModel();

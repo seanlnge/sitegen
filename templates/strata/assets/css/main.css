@@ -1232,7 +1232,7 @@ ul.actions.fit li>*{
     background-position:top left,top left;
     background-repeat:repeat,no-repeat;
     background-size:auto,150%;
-    color:rgba(255,255,255,.5);
+    color:rgba(255,255,255);
     height:100%;
     left:0;
     padding:8em 4em;
@@ -1262,7 +1262,7 @@ ul.actions.fit li>*{
     color:#fff
 }
 #header h1{
-    color:rgba(255,255,255,.5);
+    color:rgba(255,255,255);
     font-size:1.35em;
     line-height:1.75em;
     margin:0
