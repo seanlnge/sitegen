@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -38,7 +15,6 @@ const scraper_1 = require("./scraper");
 const utils_1 = require("./utils");
 const messagechain_1 = require("./messagechain");
 const template_1 = require("./template");
-const fs = __importStar(require("fs"));
 let start = Date.now();
 const log = (text) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
 function Build(igHandle, photoCount) {
@@ -57,22 +33,14 @@ function Build(igHandle, photoCount) {
         yield messageChain.addModelMessage(siteDesign);
         // Share pictures of template to model and find best suited site
         log("Prefered design found, choosing template");
-        const templateImages = messagechain_1.MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png']);
-        const templateDescriptions = JSON.stringify({
-            "directive": fs.readFileSync('templates/directive/description.txt'),
-            "strata": fs.readFileSync('templates/strata/description.txt'),
-            "dimension": fs.readFileSync('templates/dimension/description.txt'),
-            "spectral": fs.readFileSync('templates/spectral/description.txt'),
-        });
-        const templatePrompt = `I have 4 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>. Template descriptions: <descriptions>${templateDescriptions}</descriptions>`;
+        const templateImages = messagechain_1.MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/directive/directiveWide.png', 'templates/strata/strata.png', 'templates/strata/strataWide.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png', 'templates/spectral/spectralWide.png']);
+        const templatePrompt = `I have 4 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>.`;
         yield messageChain.addUserMessage(templatePrompt, ...templateImages);
         const design = yield messageChain.queryModel();
         const designJSON = (0, utils_1.jsonParse)(design);
-        messageChain.chain.pop(); // we dont need that guy anymore
+        messageChain.chain.pop();
         // Get code for specific design
         const siteName = designJSON["templateName"];
-        if (siteName != "directive" && siteName != "strata" && siteName != "dimension" && siteName != "spectral")
-            throw new Error("broooo mf made up its own template");
         const template = new template_1.TemplateBuilder(siteName);
         // Fill images inside website
         log("Template chosen, describing images");
@@ -109,6 +77,7 @@ function Build(igHandle, photoCount) {
         const websitePrompt = `I will give you the HTML and CSS code to the website template. I will also give you a list of data entry points for you to write into to make the best possible website for the client. This will be the finished product so make sure that everything is filled out. You must follow the rules exactly. Here is the template:\n\`\`\`html\n${template.html}\n\`\`\`\n\`\`\`css\n${template.css}\n\`\`\`. Here are my entry points for you to fill out \`${JSON.stringify(entryPoints)}\` <rules>Respond in JSON format as such: { [key: entry point name]: string to fill spot }. Ensure that for each entry point that I provided, you fill out and put inside the returned JSON. Do not make up any information or assume. If more information is needed to fill a specific area, generalize and make a broad statement.</rules> <example>{ ..., "HEADER": "<strong>Brand Name</strong> we are a company<br />that specializes in awesome", "PARAGRAPH_1": "Lorem ipsum dolor sit amet", ... }</example>`;
         yield messageChain.addUserMessage(websitePrompt);
         const website = yield messageChain.queryModel();
+        yield messageChain.addModelMessage(website);
         // Save HTML and build template
         const dataEntries = (0, utils_1.jsonParse)(website);
         template.setEntryPoints(new Map(Object.entries(dataEntries)));
@@ -117,9 +86,9 @@ function Build(igHandle, photoCount) {
         // Revise build cycle
         const sitePicBuffer = yield (0, scraper_1.photographSite)('build/index.html');
         const reviseChain = new messagechain_1.MessageChain();
-        reviseChain.addSystemMessage('You are a web designer altering a template');
+        reviseChain.addSystemMessage("You are a web designer altering a template for a client's Instagram page.");
         reviseChain.chain.push(...messageChain.chain.slice(-2));
-        yield reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", messagechain_1.MessageChain.ToImageB64(sitePicBuffer));
+        yield reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Once you review this site, it will be the final version that gets sent to the client, so ensure that everything is to standard. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", messagechain_1.MessageChain.ToImageB64(sitePicBuffer));
         const changes = yield reviseChain.queryModel();
         const dataEntriesRevise = (0, utils_1.jsonParse)(changes);
         template.setEntryPoints(new Map(Object.entries(dataEntriesRevise)));

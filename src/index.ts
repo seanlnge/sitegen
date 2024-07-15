@@ -28,23 +28,16 @@ export async function Build(igHandle: string, photoCount: number) {
 
     // Share pictures of template to model and find best suited site
     log("Prefered design found, choosing template");
-    const templateImages = MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png']);
-    const templateDescriptions = JSON.stringify({
-        "directive": fs.readFileSync('templates/directive/description.txt'),
-        "strata": fs.readFileSync('templates/strata/description.txt'),
-        "dimension": fs.readFileSync('templates/dimension/description.txt'),
-        "spectral": fs.readFileSync('templates/spectral/description.txt'),
-    });
-    const templatePrompt = `I have 4 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>. Template descriptions: <descriptions>${templateDescriptions}</descriptions>`;
+    const templateImages = MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/directive/directiveWide.png', 'templates/strata/strata.png', 'templates/strata/strataWide.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png', 'templates/spectral/spectralWide.png']);
+    const templatePrompt = `I have 4 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>.`;
     await messageChain.addUserMessage(templatePrompt, ...templateImages);
     
     const design = await messageChain.queryModel();
     const designJSON = jsonParse(design);
-    messageChain.chain.pop(); // we dont need that guy anymore
+    messageChain.chain.pop();
 
     // Get code for specific design
     const siteName = designJSON["templateName"];
-    if(siteName != "directive" && siteName != "strata" && siteName != "dimension" && siteName != "spectral") throw new Error("broooo mf made up its own template");
     const template = new TemplateBuilder(siteName);
 
     // Fill images inside website
@@ -88,6 +81,7 @@ export async function Build(igHandle: string, photoCount: number) {
     const websitePrompt = `I will give you the HTML and CSS code to the website template. I will also give you a list of data entry points for you to write into to make the best possible website for the client. This will be the finished product so make sure that everything is filled out. You must follow the rules exactly. Here is the template:\n\`\`\`html\n${template.html}\n\`\`\`\n\`\`\`css\n${template.css}\n\`\`\`. Here are my entry points for you to fill out \`${JSON.stringify(entryPoints)}\` <rules>Respond in JSON format as such: { [key: entry point name]: string to fill spot }. Ensure that for each entry point that I provided, you fill out and put inside the returned JSON. Do not make up any information or assume. If more information is needed to fill a specific area, generalize and make a broad statement.</rules> <example>{ ..., "HEADER": "<strong>Brand Name</strong> we are a company<br />that specializes in awesome", "PARAGRAPH_1": "Lorem ipsum dolor sit amet", ... }</example>`;
     await messageChain.addUserMessage(websitePrompt);
     const website = await messageChain.queryModel();
+    await messageChain.addModelMessage(website)
 
     // Save HTML and build template
     const dataEntries = jsonParse(website);
@@ -98,10 +92,10 @@ export async function Build(igHandle: string, photoCount: number) {
     // Revise build cycle
     const sitePicBuffer = await photographSite('build/index.html');
     const reviseChain = new MessageChain();
-    reviseChain.addSystemMessage('You are a web designer altering a template')
+    reviseChain.addSystemMessage("You are a web designer altering a template for a client's Instagram page.");
     reviseChain.chain.push(...messageChain.chain.slice(-2));
 
-    await reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", MessageChain.ToImageB64(sitePicBuffer));
+    await reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Once you review this site, it will be the final version that gets sent to the client, so ensure that everything is to standard. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", MessageChain.ToImageB64(sitePicBuffer));
     const changes = await reviseChain.queryModel();
     const dataEntriesRevise = jsonParse(changes);
     template.setEntryPoints(new Map(Object.entries(dataEntriesRevise)));

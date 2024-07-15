@@ -17,7 +17,7 @@ async function main() {
     
     await Build(CLIENT_INSTAGRAM_HANDLE, PHOTO_COUNT);
 
-    const url = `\x1b]8;;${path.resolve("build/index.html")}\x1b\\/build/index.html\x1b]8;;\x1b\\`;
+    const url = `\x1b]8;;${path.resolve("build/index.html")}\x1b\\ /build/index.html \x1b]8;;\x1b\\`;
     console.log(`${fg}Website generated under ${bg}${url}${reset}\n${fg}Thank you for using SiteGEN${reset}`);
 }
 main();

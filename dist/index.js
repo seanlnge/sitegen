@@ -50,8 +50,7 @@ function main() {
             throw new Error("Please enter Instagram handle");
         const PHOTO_COUNT = parseInt(prompt(fg + "Photo Scrape Count (default 10): ")) || 10;
         yield (0, src_1.Build)(CLIENT_INSTAGRAM_HANDLE, PHOTO_COUNT);
-        console.log(`\x1b]8;;${path.resolve("build/index.html")}\x1b\\/build/index.html\x1b]8;;\x1b\\`);
-        const url = `\x1b]8;;${path.resolve("build/index.html")}\x1b\\/build/index.html\x1b]8;;\x1b\\`;
+        const url = `\x1b]8;;${path.resolve("build/index.html")}\x1b\\ /build/index.html \x1b]8;;\x1b\\`;
         console.log(`${fg}Website generated under ${bg}${url}${reset}\n${fg}Thank you for using SiteGEN${reset}`);
     });
 }
