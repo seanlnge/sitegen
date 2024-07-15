@@ -3,6 +3,7 @@
 EXTRA INSTRUCTIONS FOR MODEL:
 All entry points will be inside of dollar signs
 If an entry point title is prefixed with "POTENTIAL", only add if the extra information would benefit the website
+If you decide not to include an entry point prefixed with "POTENTIAL", return an empty string ""
 IMAGE_X_SRC must not be edited, do not add into final JSON
 Utilize other HTML tags inside of data entry points if it would benefit the website
 Although you may use HTML tags, you may not close any tags that you have not opened previously in the same entry
@@ -20,7 +21,7 @@ After data entry, this will be the final rendition of the website, so ensure tha
 
 		<!-- Header -->
 			<div id="header">
-				<span class="logo icon fa-paper-plane"></span>
+                <img class="logo icon" src="$IMAGE_Z_SRC$" />
 				<h1>$MAIN_TITLE$</h1>
 				<p>$PURPOSE$ <a href="https://instagram.com/$INSTAGRAM_HANDLE$">@$INSTAGRAM_HANDLE$</a>
 				<br />

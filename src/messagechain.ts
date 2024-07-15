@@ -48,6 +48,12 @@ export class MessageChain {
         await this.writeLog("Push Message To Chain", toPush);
     }
 
+    async addSystemMessage(text: string) {
+        const toPush = { role: 'system', content: text } as ChatCompletionMessageParam;
+        this.chain.push(toPush);
+        await this.writeLog("Push Message To Chain", toPush);
+    }
+
     async getChain(start: number = 0, end: number = this.chain.length) {
         const retrieval = this.chain.slice(start, end);
         await this.writeLog("Chain Retreived from Indices " + start + " to " + end);
@@ -94,9 +100,9 @@ export class MessageChain {
         return urls.map(url => this.ToImageURL(url));
     }
 
-    static ToImageB64(url: string): ChatCompletionContentPartImage {
-        const bufferStr = fs.readFileSync(url).toString('base64');
-        const extension = url.split('.').pop();
+    static ToImageB64(url: string | Buffer): ChatCompletionContentPartImage {
+        const bufferStr = Buffer.isBuffer(url) ? url.toString('base64') : fs.readFileSync(url).toString('base64');
+        const extension = Buffer.isBuffer(url) ? 'jpeg' : url.split('.').pop();
 
         return {
             type: "image_url",

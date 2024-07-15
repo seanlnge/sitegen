@@ -10,9 +10,11 @@
   "license": "ISC",
   "dependencies": {
     "@types/axios": "^0.14.0",
+    "@types/sharp": "^0.32.0",
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
     "openai": "^4.52.3",
-    "puppeteer": "^22.12.1"
+    "puppeteer": "^22.12.1",
+    "sharp": "^0.33.4"
   }
 }

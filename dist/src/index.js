@@ -20,8 +20,6 @@ const log = (text) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0
 function Build(igHandle) {
     return __awaiter(this, void 0, void 0, function* () {
         const igdata = yield (0, scraper_1.instagramScraper)(igHandle);
-        //fs.writeFile("igdata.json", JSON.stringify(igdata), () => {});
-        //const igdata = JSON.parse(fs.readFileSync("igdata.json").toString());
         log("Instagram scraped, choosing template");
         const textPrompt = `I will give you the Instagram page for @${igHandle}. Pretend you are this user. Describe the purpose of your Instagram page, as well as what you would display if you were to turn it into a static single page website. <bio>${igdata.bio}</bio>`;
         // Create list of images for model to parse
@@ -34,15 +32,16 @@ function Build(igHandle) {
         yield messageChain.addModelMessage(siteDesign);
         // Share pictures of template to model and find best suited site
         log("Prefered design found, choosing template");
-        //const templateImages = MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png']);
-        //const templatePrompt = `I have 3 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>`;
-        //await messageChain.addUserMessage(templatePrompt, ...templateImages);
-        //const design = await messageChain.queryModel();
-        //const designJSON = jsonParse(design);
-        //messageChain.chain.pop(); // we dont need that guy anymore
+        const templateImages = messagechain_1.MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/strata/strata.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png']);
+        const templatePrompt = `I have 3 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>`;
+        yield messageChain.addUserMessage(templatePrompt, ...templateImages);
+        const design = yield messageChain.queryModel();
+        const designJSON = (0, utils_1.jsonParse)(design);
+        messageChain.chain.pop(); // we dont need that guy anymore
         // Get code for specific design
-        const siteName = "spectral"; //designJSON["templateName"];
-        //if(siteName != "directive" && siteName != "strata" && siteName != "dimension" && siteName != "spectral") throw new Error("broooo mf made up its own template");
+        const siteName = designJSON["templateName"];
+        if (siteName != "directive" && siteName != "strata" && siteName != "dimension" && siteName != "spectral")
+            throw new Error("broooo mf made up its own template");
         const template = new template_1.TemplateBuilder(siteName);
         // Fill images inside website
         log("Template chosen, describing images");
@@ -79,11 +78,22 @@ function Build(igHandle) {
         const websitePrompt = `I will give you the HTML and CSS code to the website template. I will also give you a list of data entry points for you to write into to make the best possible website for the client. This will be the finished product so make sure that everything is filled out. You must follow the rules exactly. Here is the template:\n\`\`\`html\n${template.html}\n\`\`\`\n\`\`\`css\n${template.css}\n\`\`\`. Here are my entry points for you to fill out \`${JSON.stringify(entryPoints)}\` <rules>Respond in JSON format as such: { [key: entry point name]: string to fill spot }. Ensure that for each entry point that I provided, you fill out and put inside the returned JSON. Do not make up any information or assume. If more information is needed to fill a specific area, generalize and make a broad statement.</rules> <example>{ ..., "HEADER": "<strong>Brand Name</strong> we are a company<br />that specializes in awesome", "PARAGRAPH_1": "Lorem ipsum dolor sit amet", ... }</example>`;
         yield messageChain.addUserMessage(websitePrompt);
         const website = yield messageChain.queryModel();
-        // Svae HTML and build template
+        // Save HTML and build template
         const dataEntries = (0, utils_1.jsonParse)(website);
         template.setEntryPoints(new Map(Object.entries(dataEntries)));
         yield template.build();
-        log("Website built");
+        log("Website built, revising website");
+        // Revise build cycle
+        const sitePicBuffer = yield (0, scraper_1.photographSite)('build/index.html');
+        const reviseChain = new messagechain_1.MessageChain();
+        reviseChain.addSystemMessage('You are a web designer altering a template');
+        reviseChain.chain.push(...messageChain.chain.slice(-2));
+        yield reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", messagechain_1.MessageChain.ToImageB64(sitePicBuffer));
+        const changes = yield reviseChain.queryModel();
+        const dataEntriesRevise = (0, utils_1.jsonParse)(changes);
+        template.setEntryPoints(new Map(Object.entries(dataEntriesRevise)));
+        yield template.build();
+        log("Website revised");
     });
 }
 exports.Build = Build;

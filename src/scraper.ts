@@ -1,5 +1,6 @@
-import puppeteer, { Page } from 'puppeteer';
-import fs from 'fs';
+import puppeteer, { KnownDevices } from 'puppeteer';
+import sharp from 'sharp';
+import path from 'path';
 require('dotenv').config();
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -45,3 +46,61 @@ export async function instagramScraper(handle: string) {
 
     return igdata;
 };
+
+export async function photographSite(siteUrl: string) {
+    const browser = await puppeteer.launch({ headless: true, defaultViewport: null });
+    const page = (await browser.pages())[0];
+
+    await page.emulate(KnownDevices['iPhone 12 Pro']);
+
+    await page.goto(path.resolve(siteUrl));
+
+    // Using { fullPage: true } is broken so set viewport to size of HTML body
+    const boundingBox = (await (await page.$('body'))?.boundingBox());
+    if(!boundingBox) throw new Error("fuck");
+    boundingBox.height = Math.floor(boundingBox.height);
+    boundingBox.width = Math.floor(boundingBox.width);
+    await page.setViewport(boundingBox);
+
+    await page.reload();
+    await sleep(5000);
+    
+    const screenshot = await page.screenshot({ fullPage: true });
+    await browser.close();
+    const image = sharp(screenshot);
+
+    const { width, height } = await image.metadata();
+    if(!width || !height) throw new Error('this will never happen');
+
+    // Find how many pieces to slice into
+    const dif = height > width ? Math.sqrt(height / width) : Math.sqrt(width / height);
+    const lower = Math.floor(dif);
+    const upper = Math.ceil(dif);
+    
+    // Halfway point in rounding is where integral x from lower -> dif == integral x from dif -> upper
+    const pieces = lower + Math.round((dif ** 2 - lower ** 2) / (upper ** 2 - lower ** 2));
+    const pieceHeight = Math.floor(height / pieces);
+
+    const slices = [];
+    for(let piece=0; piece<pieces; piece++) {
+        const copy = image.clone();
+        slices.push(await copy.extract({ left: 0, top: piece * pieceHeight, height: pieceHeight, width }).toBuffer());
+    }
+
+    const nimageObj = sharp({
+        create: {
+            width: width * pieces + 10 * (pieces - 1),
+            height: pieceHeight,
+            channels: 4,
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+        }
+    });
+
+    const nimageBuffer = nimageObj.composite(slices.map((x, i) => ({
+        input: x,
+        left: width * i + 10 * (i-1),
+        top: 0
+    })));
+
+    return nimageBuffer.toFormat('jpeg').toBuffer();
+}

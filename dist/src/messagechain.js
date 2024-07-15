@@ -77,6 +77,13 @@ class MessageChain {
             yield this.writeLog("Push Message To Chain", toPush);
         });
     }
+    addSystemMessage(text) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const toPush = { role: 'system', content: text };
+            this.chain.push(toPush);
+            yield this.writeLog("Push Message To Chain", toPush);
+        });
+    }
     getChain(start = 0, end = this.chain.length) {
         return __awaiter(this, void 0, void 0, function* () {
             const retrieval = this.chain.slice(start, end);
@@ -123,8 +130,8 @@ class MessageChain {
         return urls.map(url => this.ToImageURL(url));
     }
     static ToImageB64(url) {
-        const bufferStr = fs.readFileSync(url).toString('base64');
-        const extension = url.split('.').pop();
+        const bufferStr = Buffer.isBuffer(url) ? url.toString('base64') : fs.readFileSync(url).toString('base64');
+        const extension = Buffer.isBuffer(url) ? 'jpeg' : url.split('.').pop();
         return {
             type: "image_url",
             image_url: { "url": `data:image/${extension};base64,${bufferStr}` }

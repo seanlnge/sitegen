@@ -1,5 +1,5 @@
 require('dotenv').config();
-import { instagramScraper } from './scraper';
+import { instagramScraper, photographSite } from './scraper';
 import { jsonParse } from './utils';
 import { MessageChain } from './messagechain';
 import { TemplateBuilder } from './template';
@@ -9,8 +9,6 @@ const log = (text: string) => console.log("\x1b[92m" + (Date.now() - start) + "m
 
 export async function Build(igHandle: string) {
     const igdata = await instagramScraper(igHandle) as Record<string, any>;
-    //fs.writeFile("igdata.json", JSON.stringify(igdata), () => {});
-    //const igdata = JSON.parse(fs.readFileSync("igdata.json").toString());
 
     log("Instagram scraped, choosing template");
     const textPrompt = `I will give you the Instagram page for @${igHandle}. Pretend you are this user. Describe the purpose of your Instagram page, as well as what you would display if you were to turn it into a static single page website. <bio>${igdata.bio}</bio>`;
@@ -83,9 +81,22 @@ export async function Build(igHandle: string) {
     await messageChain.addUserMessage(websitePrompt);
     const website = await messageChain.queryModel();
 
-    // Svae HTML and build template
+    // Save HTML and build template
     const dataEntries = jsonParse(website);
     template.setEntryPoints(new Map(Object.entries(dataEntries)));
     await template.build();
-    log("Website built");
+    log("Website built, revising website");
+
+    // Revise build cycle
+    const sitePicBuffer = await photographSite('build/index.html');
+    const reviseChain = new MessageChain();
+    reviseChain.addSystemMessage('You are a web designer altering a template')
+    reviseChain.chain.push(...messageChain.chain.slice(-2));
+
+    await reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", MessageChain.ToImageB64(sitePicBuffer));
+    const changes = await reviseChain.queryModel();
+    const dataEntriesRevise = jsonParse(changes);
+    template.setEntryPoints(new Map(Object.entries(dataEntriesRevise)));
+    await template.build();
+    log("Website revised");
 }

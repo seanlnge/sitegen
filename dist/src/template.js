@@ -78,6 +78,8 @@ class TemplateBuilder {
     }
     build() {
         return __awaiter(this, void 0, void 0, function* () {
+            let html = this.html;
+            let css = this.css;
             // Delete old build folder if existent
             if (fs.existsSync("build"))
                 yield fs.promises.rm("build", { force: true, recursive: true });
@@ -114,14 +116,14 @@ class TemplateBuilder {
             }
             // Alter HTML and CSS to include data entry
             for (const [entryName, entry] of this.entryPoints.entries()) {
-                while (this.html.indexOf(`$${entryName}$`) !== -1)
-                    this.html = this.html.replace(`$${entryName}$`, entry);
-                while (this.css.indexOf(`$${entryName}$`) !== -1)
-                    this.css = this.css.replace(`$${entryName}$`, entry);
+                while (html.indexOf(`$${entryName}$`) !== -1)
+                    html = html.replace(`$${entryName}$`, entry);
+                while (css.indexOf(`$${entryName}$`) !== -1)
+                    css = css.replace(`$${entryName}$`, entry);
             }
             // Finalize build
-            yield fs.promises.writeFile("build/index.html", this.html);
-            yield fs.promises.writeFile("build/assets/css/main.css", this.css);
+            yield fs.promises.writeFile("build/index.html", html);
+            yield fs.promises.writeFile("build/assets/css/main.css", css);
         });
     }
 }
