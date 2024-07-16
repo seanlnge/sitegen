@@ -1,6 +1,7 @@
 import puppeteer, { KnownDevices } from 'puppeteer';
 import sharp from 'sharp';
 import path from 'path';
+import { error, log } from '..';
 require('dotenv').config();
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -9,7 +10,7 @@ const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
  * Scrapes instagram
  * @returns string[]
  */
-export async function instagramScraper(handle: string, log: ((p: string) => void)) {
+export async function instagramScraper(handle: string) {
     const browser = await puppeteer.launch({ headless: true });
     const page = (await browser.pages())[0];
 
@@ -26,18 +27,18 @@ export async function instagramScraper(handle: string, log: ((p: string) => void
 
     log('Loading and scraping page for @' + handle);
     await page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
-    await sleep(2000);
+    await sleep(3000);
 
-    const igdata =  await page.evaluate(() => {
+    const igdata = await page.evaluate(() => {
         const images = Array.from(document.querySelectorAll('img'));
-        const ppurl = images[3].src;
+        const ppurl = images.filter(x => x.classList.length == 18)[1].src;
         const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
 
         const bioElement = document.querySelector('section > div > span > div > span');
         
         return {
             profilePicture: ppurl,
-            bio: bioElement ? bioElement.textContent : "",
+            bio: bioElement ? bioElement.textContent ?? "" : "",
             thumbnails,
         }
     });
@@ -57,7 +58,7 @@ export async function photographSite(siteUrl: string) {
 
     // Using { fullPage: true } is broken so set viewport to size of HTML body
     const boundingBox = (await (await page.$('body'))?.boundingBox());
-    if(!boundingBox) throw new Error("fuck");
+    if(!boundingBox) return error("Error occured with build revision screenshot, continuing program", false);
     boundingBox.height = Math.floor(boundingBox.height);
     boundingBox.width = Math.floor(boundingBox.width);
     await page.setViewport(boundingBox);

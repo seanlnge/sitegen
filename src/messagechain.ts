@@ -89,29 +89,33 @@ export class MessageChain {
         return resp;
     }
 
-    static ToImageURL(url: string): ChatCompletionContentPartImage {
+    static ToImageURL(url: string, lowResolution?: boolean): ChatCompletionContentPartImage {
         return {
             type: "image_url",
-            image_url: { "url": url }
+            image_url: { url, detail: lowResolution == undefined ? "auto" : lowResolution ? "low" : "high"  },
+            
         };
     }
 
-    static ToImagesURL(urls: string[]): ChatCompletionContentPartImage[] {
-        return urls.map(url => this.ToImageURL(url));
+    static ToImagesURL(urls: string[], lowResolution?: boolean): ChatCompletionContentPartImage[] {
+        return urls.map(url => this.ToImageURL(url, lowResolution));
     }
 
-    static ToImageB64(url: string | Buffer): ChatCompletionContentPartImage {
+    static ToImageB64(url: string | Buffer, lowResolution?: boolean): ChatCompletionContentPartImage {
         const bufferStr = Buffer.isBuffer(url) ? url.toString('base64') : fs.readFileSync(url).toString('base64');
         const extension = Buffer.isBuffer(url) ? 'jpeg' : url.split('.').pop();
 
         return {
             type: "image_url",
-            image_url: { "url": `data:image/${extension};base64,${bufferStr}` }
+            image_url: {
+                url: `data:image/${extension};base64,${bufferStr}`,
+                detail: lowResolution == undefined ? "auto" : lowResolution ? "low" : "high" 
+            }
         }
     }
 
-    static ToImagesB64(urls: string[]): ChatCompletionContentPartImage[] {
-        return urls.map(url => this.ToImageB64(url));
+    static ToImagesB64(urls: string[], lowResolution?: boolean): ChatCompletionContentPartImage[] {
+        return urls.map(url => this.ToImageB64(url, lowResolution));
     }
 
     

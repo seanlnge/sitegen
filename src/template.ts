@@ -1,7 +1,56 @@
 import * as fs from "fs";
 import axios from 'axios';
+import { xmlParse } from "./utils";
 
-export type TemplateName = "directive" | "strata" | "dimension" | "spectral";
+const DIRECTIVE_COPYFILE_STRUCTURE = [
+    "assets/css/images/bottom-1280.svg",
+    "assets/css/images/bottom-1600.svg",
+    "assets/css/images/bottom-3200.svg",
+    "assets/css/images/overlay.png",
+    "assets/css/images/top-1280.svg",
+    "assets/css/images/top-1600.svg",
+    "assets/css/images/top-3200.svg",
+    "assets/js/main.js",
+    "assets/js/util.js",
+];
+const STRATA_COPYFILE_STRUCTURE = [
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "assets/css/images/overlay.png"
+];
+const DIMENSION_COPYFILE_STRUCTURE = [
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "images/overlay.png",
+];
+const SPECTRAL_COPYFILE_STRUCTURE = [
+    "assets/css/images/arrow.svg",
+    "assets/css/images/bars.svg",
+    "assets/css/images/close.svg",
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "assets/js/jquery.scrollex.min.js",
+    "assets/js/jquery.scrolly.min.js"  
+];
+const BIGPICTURE_COPYFILE_STRUCTURE = [
+    "assets/css/images/arrow.svg",
+    "assets/css/images/dark-arrow.svg",
+    "assets/css/images/overlay.png",
+    "assets/css/images/poptrox-closer.svg",
+    "assets/css/images/poptrox-nav.svg",
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "assets/js/jquery.scrolly.min.js",
+    "assets/js/jquery.scrollex.min.js",
+];
+
+export const Templates = {
+    "directive": DIRECTIVE_COPYFILE_STRUCTURE,
+    "strata": STRATA_COPYFILE_STRUCTURE,
+    "dimension": DIMENSION_COPYFILE_STRUCTURE,
+    "spectral": SPECTRAL_COPYFILE_STRUCTURE,
+    "bigpicture": BIGPICTURE_COPYFILE_STRUCTURE,
+}
 
 export type TemplateImage = {
     source: string;
@@ -9,13 +58,13 @@ export type TemplateImage = {
 }
 
 export class TemplateBuilder {
-    templateName: TemplateName;
+    templateName: keyof typeof Templates;
     html: string;
     css: string;
     imageDownloads: Map<string, string>;
     entryPoints: Map<string, string>;
 
-    constructor(template: TemplateName) {
+    constructor(template: keyof typeof Templates) {
         this.templateName = template;
         this.html = fs.readFileSync(`templates/${template}/index.html`).toString();
         this.css = fs.readFileSync(`templates/${template}/assets/css/main.css`).toString();
@@ -62,8 +111,8 @@ export class TemplateBuilder {
     }
 
     async build() {
-        let html = this.html;
-        let css = this.css;
+        let html = `<DOCTYPE! html>\n<html>\n${xmlParse(this.html, "html")}\n</html>`;
+        let css = this.css.split('*/')[1];
 
         // Delete old build folder if existent
         if(fs.existsSync("build")) await fs.promises.rm("build", { force: true, recursive: true });
@@ -83,13 +132,7 @@ export class TemplateBuilder {
         await fs.promises.cp("templates/global/js", "build/assets/js", { recursive: true });
 
         // Move all files specific to the template
-        const TEMPLATE_MAP = {
-            "directive": TemplateBuilder.DIRECTIVE_COPYFILE_STRUCTURE,
-            "strata": TemplateBuilder.STRATA_COPYFILE_STRUCTURE,
-            "dimension": TemplateBuilder.DIMENSION_COPYFILE_STRUCTURE,
-            "spectral": TemplateBuilder.SPECTRAL_COPYFILE_STRUCTURE,
-        }
-        for(const FILE of TEMPLATE_MAP[this.templateName]) {
+        for(const FILE of Templates[this.templateName]) {
             await fs.promises.copyFile(
                 `templates/${this.templateName}/${FILE}`,
                 `build/${FILE}`
@@ -116,35 +159,4 @@ export class TemplateBuilder {
         await fs.promises.writeFile("build/index.html", html);
         await fs.promises.writeFile("build/assets/css/main.css", css);
     }
-
-    static DIRECTIVE_COPYFILE_STRUCTURE = [
-        "assets/css/images/bottom-1280.svg",
-        "assets/css/images/bottom-1600.svg",
-        "assets/css/images/bottom-3200.svg",
-        "assets/css/images/overlay.png",
-        "assets/css/images/top-1280.svg",
-        "assets/css/images/top-1600.svg",
-        "assets/css/images/top-3200.svg",
-        "assets/js/main.js",
-        "assets/js/util.js",
-    ];
-    static STRATA_COPYFILE_STRUCTURE = [
-        "assets/js/main.js",
-        "assets/js/util.js",
-        "assets/css/images/overlay.png"
-    ];
-    static DIMENSION_COPYFILE_STRUCTURE = [
-        "assets/js/main.js",
-        "assets/js/util.js",
-        "images/overlay.png",
-    ];
-    static SPECTRAL_COPYFILE_STRUCTURE = [
-        "assets/css/images/arrow.svg",
-        "assets/css/images/bars.svg",
-        "assets/css/images/close.svg",
-        "assets/js/main.js",
-        "assets/js/util.js",
-        "assets/js/jquery.scrollex.min.js",
-        "assets/js/jquery.scrolly.min.js"  
-    ];
 }

@@ -120,25 +120,28 @@ class MessageChain {
             return resp;
         });
     }
-    static ToImageURL(url) {
+    static ToImageURL(url, lowResolution) {
         return {
             type: "image_url",
-            image_url: { "url": url }
+            image_url: { url, detail: lowResolution == undefined ? "auto" : lowResolution ? "low" : "high" },
         };
     }
-    static ToImagesURL(urls) {
-        return urls.map(url => this.ToImageURL(url));
+    static ToImagesURL(urls, lowResolution) {
+        return urls.map(url => this.ToImageURL(url, lowResolution));
     }
-    static ToImageB64(url) {
+    static ToImageB64(url, lowResolution) {
         const bufferStr = Buffer.isBuffer(url) ? url.toString('base64') : fs.readFileSync(url).toString('base64');
         const extension = Buffer.isBuffer(url) ? 'jpeg' : url.split('.').pop();
         return {
             type: "image_url",
-            image_url: { "url": `data:image/${extension};base64,${bufferStr}` }
+            image_url: {
+                url: `data:image/${extension};base64,${bufferStr}`,
+                detail: lowResolution == undefined ? "auto" : lowResolution ? "low" : "high"
+            }
         };
     }
-    static ToImagesB64(urls) {
-        return urls.map(url => this.ToImageB64(url));
+    static ToImagesB64(urls, lowResolution) {
+        return urls.map(url => this.ToImageB64(url, lowResolution));
     }
     describeImage(image, prompt = "Describe this image") {
         var _a, _b, _c;

@@ -23,7 +23,7 @@ Although you may use HTML tags, you may not close any tags that you have not ope
 After data entry, this will be the final rendition of the website, so ensure that the website will meet the client's needs.
 -->
 ```
-Remove all Latin filler text (lorem ipsum dolor sit amet) and replace with data entry tags $NAME$. Data entry tags will always be between two dollar signs, and attempt to name the tag close to what its purpose is. For example $HEADER$, $MAIN_MOTTO$, and $ARTICLE_2_PARAGRAPH$ are all valid tags. Add $POTENTIAL_EXTRA_SECTION$ below the main div in <body> to allow model to place more HTML if needed. Any other potential extra information should be denoted through a data entry tag with a name prefixed in "POTENTIAL_".
+Remove all Latin filler text (lorem ipsum dolor sit amet) and replace with data entry tags $NAME$. Data entry tags will always be between two dollar signs, and attempt to name the tag close to what its purpose is. For example `$HEADER$`, `$MAIN_MOTTO$`, and `$ARTICLE_2_PARAGRAPH$` are all valid tags. Add `$POTENTIAL_EXTRA_SECTION$` below the main div in <body> to allow model to place more HTML if needed. Any other potential extra information should be denoted through a data entry tag with a name prefixed in `POTENTIAL_`.
 
 ### style.css
 If a specific color scheme is being followed in the template, and the number of different colors is manageable, allow the model to choose the color scheme. This can be done by utilizing CSS vars and replacing the color with `$COLOR_1$`. For instance, if a template has a color scheme consisting of only 4 different colors, add to the top of the CSS file
@@ -44,6 +44,3 @@ This is the showcase picture that the model sees when choosing a template. Scree
 
 ### showcase.png
 This is the exact same picture as `\[name\].png`, however, over all the images on the page, write in `IMAGE_A` in a large bold black font, then `IMAGE_B`, etc, in alphabetical order from top to bottom. This image allows the model to see where to place the different images. Alter any image tags inside index.html or any url() with the image inside of assets/css/main.css and write in the data entry tag `$IMAGE_A_SRC$`, `$IMAGE_B_SRC$`, etc, in the src or the url in order from top to bottom. Ensure that no two image data entry tags are used twice. In the index.html file, add `$IMAGE_X_ALT$` to the alt tag next to src where X is the image letter that the alt corresponds with.
-
-### index.ts
-Inside the main src/index.ts file, adjust `templateImages`, `templatePrompt`, and the `siteName` restrictions to allow the model to choose the new template. The JSON schema inside `templatePrompt` also needs to be altered, and the model must be allowed to choose the name of the template as it shows up under the `templates/` folder. 

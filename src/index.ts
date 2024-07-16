@@ -2,18 +2,15 @@ require('dotenv').config();
 import { instagramScraper, photographSite } from './scraper';
 import { jsonParse } from './utils';
 import { MessageChain } from './messagechain';
-import { TemplateBuilder } from './template';
+import { TemplateBuilder, Templates } from './template';
 import * as fs from 'fs';
-
-let start = Date.now();
-const log = (text: string) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
+import { log, error } from '..';
 
 export async function Build(igHandle: string, photoCount: number) {
-    start = Date.now();
-    const igdata = await instagramScraper(igHandle, log) as Record<string, any>;
+    const igdata = await instagramScraper(igHandle) as Record<string, any>;
 
-    log("Instagram scraped, choosing template");
-    const textPrompt = `I will give you the Instagram page for @${igHandle}. Pretend you are this user. Describe the purpose of your Instagram page, as well as what you would display if you were to turn it into a static single page website. <bio>${igdata.bio}</bio>`;
+    log("Instagram scraped, parsing data");
+    const textPrompt = `I will give you the Instagram page for my client, @${igHandle}. Describe the purpose of this Instagram page, as well as the personality that this client might have, and the style and color scheme that would work best for them.\n<bio>${igdata.bio}</bio>\n<captions>\n${igdata.thumbnails.map((x: any) => x.alt).join('\n')}\n</captions>`;
     
     // Create list of images for model to parse
     const images = MessageChain.ToImagesURL(igdata.thumbnails.slice(0, photoCount).map((x: any) => x.src));
@@ -28,8 +25,8 @@ export async function Build(igHandle: string, photoCount: number) {
 
     // Share pictures of template to model and find best suited site
     log("Prefered design found, choosing template");
-    const templateImages = MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/directive/directiveWide.png', 'templates/strata/strata.png', 'templates/strata/strataWide.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png', 'templates/spectral/spectralWide.png']);
-    const templatePrompt = `I have 4 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>.`;
+    const templateImages = MessageChain.ToImagesB64(Object.keys(Templates).map(x => `templates/${x}/${x}.png`), true);
+    const templatePrompt = `I have ${Object.keys(Templates).length} website templates to choose from. Pick which website template would work the best with this Instagram page, and why you chose that specific template. Respond in JSON adhering to the following format <json>{ "templateName": ${Object.keys(Templates).map(x => `"${x}"`).join(" | ")}, "reasoning": string }</json>.`;
     await messageChain.addUserMessage(templatePrompt, ...templateImages);
     
     const design = await messageChain.queryModel();
@@ -38,6 +35,7 @@ export async function Build(igHandle: string, photoCount: number) {
 
     // Get code for specific design
     const siteName = designJSON["templateName"];
+    if(!(siteName in Templates)) error("Error occured with model template, please try again");
     const template = new TemplateBuilder(siteName);
 
     // Fill images inside website
@@ -81,7 +79,7 @@ export async function Build(igHandle: string, photoCount: number) {
     const websitePrompt = `I will give you the HTML and CSS code to the website template. I will also give you a list of data entry points for you to write into to make the best possible website for the client. This will be the finished product so make sure that everything is filled out. You must follow the rules exactly. Here is the template:\n\`\`\`html\n${template.html}\n\`\`\`\n\`\`\`css\n${template.css}\n\`\`\`. Here are my entry points for you to fill out \`${JSON.stringify(entryPoints)}\` <rules>Respond in JSON format as such: { [key: entry point name]: string to fill spot }. Ensure that for each entry point that I provided, you fill out and put inside the returned JSON. Do not make up any information or assume. If more information is needed to fill a specific area, generalize and make a broad statement.</rules> <example>{ ..., "HEADER": "<strong>Brand Name</strong> we are a company<br />that specializes in awesome", "PARAGRAPH_1": "Lorem ipsum dolor sit amet", ... }</example>`;
     await messageChain.addUserMessage(websitePrompt);
     const website = await messageChain.queryModel();
-    await messageChain.addModelMessage(website)
+    await messageChain.addModelMessage(website);
 
     // Save HTML and build template
     const dataEntries = jsonParse(website);
@@ -91,11 +89,16 @@ export async function Build(igHandle: string, photoCount: number) {
 
     // Revise build cycle
     const sitePicBuffer = await photographSite('build/index.html');
-    const reviseChain = new MessageChain();
-    reviseChain.addSystemMessage("You are a web designer altering a template for a client's Instagram page.");
+    if(sitePicBuffer instanceof Error) {
+        log("Revision failed, website completed");
+        return;
+    }
+
+    const reviseChain = new MessageChain({ logPath: 'reviselog.txt', saveLog: true });
+    await reviseChain.addSystemMessage("You are a web designer altering a template for a client's Instagram page.");
     reviseChain.chain.push(...messageChain.chain.slice(-2));
 
-    await reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Once you review this site, it will be the final version that gets sent to the client, so ensure that everything is to standard. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", MessageChain.ToImageB64(sitePicBuffer));
+    await reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. Review it and think about what areas, styles, or words could be fixed up or changed. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Once you review this site, it will be the final version that gets sent to the client, so ensure that everything is to standard. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", MessageChain.ToImageB64(sitePicBuffer));
     const changes = await reviseChain.queryModel();
     const dataEntriesRevise = jsonParse(changes);
     template.setEntryPoints(new Map(Object.entries(dataEntriesRevise)));

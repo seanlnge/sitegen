@@ -1,5 +1,8 @@
+/*
+INSTRUCTIONS FOR MODEL
 
-:root {
+The default colors for the site are 
+
     --body-background-color: #FFF;
     --body-text-color: #39454b;
 
@@ -15,6 +18,28 @@
 
     --footer-text-color: #b9babb;
     --footer-background: #39454b;
+
+All entry points will be inside of dollar signs
+All entry points inside of this CSS file must be filled out
+
+If you wish not to change a color, use the default color
+*/
+:root {
+    --body-background-color: $BODY_BACKGROUND_COLOR$;
+    --body-text-color: $BODY_TEXT_COLOR$;
+
+    --button-text-color: $BUTTON_TEXT_COLOR$;
+    --button-style1-color: $BUTTON_STYLE1_COLOR$;
+    --button-style2-color: $BUTTON_STYLE2_COLOR$;
+
+    --input-border-color: $INPUT_BORDER_COLOR$;
+    --input-border-color-focused: $INPUT_BORDER_COLOR_FOCUSED$;
+
+    --main-primary: $MAIN_PRIMARY_COLOR$;
+    --main-secondary: $MAIN_SECONDARY_COLOR$;
+
+    --footer-text-color: $FOOTER_TEXT_COLOR$;
+    --footer-background: $FOOTER_BACKGROUND_COLOR$;
 }
 
 @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900);
@@ -1452,20 +1477,20 @@ body{
     }
 }
 #intro{
-    background:url(images/overlay.png),url(../../images/IMAGE_A.jpg);
+    background:url(images/overlay.png),url(../../$IMAGE_A_SRC$);
     background-size:256px 256px,cover;
     background-attachment:fixed,fixed;
     background-position:top left,bottom center;
     background-repeat:repeat,no-repeat
 }
 #one{
-    background:url(images/overlay.png),url(../../images/IMAGE_B.jpg);
+    background:url(images/overlay.png),url(../../$IMAGE_B_SRC$);
     background-size:256px 256px,cover;
     background-attachment:fixed,fixed;
     background-position:top left,center center
 }
 #two{
-    background:url(images/overlay.png),url(../../images/IMAGE_C.jpg);
+    background:url(images/overlay.png),url(../../$IMAGE_C_SRC$);
     background-size:256px 256px,cover;
     background-attachment:fixed,fixed;
     background-position:top left,center center

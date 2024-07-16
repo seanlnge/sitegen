@@ -35,9 +35,58 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TemplateBuilder = void 0;
+exports.TemplateBuilder = exports.Templates = void 0;
 const fs = __importStar(require("fs"));
 const axios_1 = __importDefault(require("axios"));
+const utils_1 = require("./utils");
+const DIRECTIVE_COPYFILE_STRUCTURE = [
+    "assets/css/images/bottom-1280.svg",
+    "assets/css/images/bottom-1600.svg",
+    "assets/css/images/bottom-3200.svg",
+    "assets/css/images/overlay.png",
+    "assets/css/images/top-1280.svg",
+    "assets/css/images/top-1600.svg",
+    "assets/css/images/top-3200.svg",
+    "assets/js/main.js",
+    "assets/js/util.js",
+];
+const STRATA_COPYFILE_STRUCTURE = [
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "assets/css/images/overlay.png"
+];
+const DIMENSION_COPYFILE_STRUCTURE = [
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "images/overlay.png",
+];
+const SPECTRAL_COPYFILE_STRUCTURE = [
+    "assets/css/images/arrow.svg",
+    "assets/css/images/bars.svg",
+    "assets/css/images/close.svg",
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "assets/js/jquery.scrollex.min.js",
+    "assets/js/jquery.scrolly.min.js"
+];
+const BIGPICTURE_COPYFILE_STRUCTURE = [
+    "assets/css/images/arrow.svg",
+    "assets/css/images/dark-arrow.svg",
+    "assets/css/images/overlay.png",
+    "assets/css/images/poptrox-closer.svg",
+    "assets/css/images/poptrox-nav.svg",
+    "assets/js/main.js",
+    "assets/js/util.js",
+    "assets/js/jquery.scrolly.min.js",
+    "assets/js/jquery.scrollex.min.js",
+];
+exports.Templates = {
+    //"directive": DIRECTIVE_COPYFILE_STRUCTURE,
+    //"strata": STRATA_COPYFILE_STRUCTURE,
+    //"dimension": DIMENSION_COPYFILE_STRUCTURE,
+    //"spectral": SPECTRAL_COPYFILE_STRUCTURE,
+    "bigpicture": BIGPICTURE_COPYFILE_STRUCTURE,
+};
 class TemplateBuilder {
     constructor(template) {
         this.templateName = template;
@@ -78,8 +127,8 @@ class TemplateBuilder {
     }
     build() {
         return __awaiter(this, void 0, void 0, function* () {
-            let html = this.html;
-            let css = this.css;
+            let html = `<DOCTYPE! html>\n<html>\n${(0, utils_1.xmlParse)(this.html, "html")}\n</html>`;
+            let css = this.css.split('*/')[1];
             // Delete old build folder if existent
             if (fs.existsSync("build"))
                 yield fs.promises.rm("build", { force: true, recursive: true });
@@ -96,13 +145,7 @@ class TemplateBuilder {
             yield fs.promises.cp("templates/global/css", "build/assets/css", { recursive: true });
             yield fs.promises.cp("templates/global/js", "build/assets/js", { recursive: true });
             // Move all files specific to the template
-            const TEMPLATE_MAP = {
-                "directive": TemplateBuilder.DIRECTIVE_COPYFILE_STRUCTURE,
-                "strata": TemplateBuilder.STRATA_COPYFILE_STRUCTURE,
-                "dimension": TemplateBuilder.DIMENSION_COPYFILE_STRUCTURE,
-                "spectral": TemplateBuilder.SPECTRAL_COPYFILE_STRUCTURE,
-            };
-            for (const FILE of TEMPLATE_MAP[this.templateName]) {
+            for (const FILE of exports.Templates[this.templateName]) {
                 yield fs.promises.copyFile(`templates/${this.templateName}/${FILE}`, `build/${FILE}`);
             }
             // Add images to build/images folder
@@ -128,33 +171,3 @@ class TemplateBuilder {
     }
 }
 exports.TemplateBuilder = TemplateBuilder;
-TemplateBuilder.DIRECTIVE_COPYFILE_STRUCTURE = [
-    "assets/css/images/bottom-1280.svg",
-    "assets/css/images/bottom-1600.svg",
-    "assets/css/images/bottom-3200.svg",
-    "assets/css/images/overlay.png",
-    "assets/css/images/top-1280.svg",
-    "assets/css/images/top-1600.svg",
-    "assets/css/images/top-3200.svg",
-    "assets/js/main.js",
-    "assets/js/util.js",
-];
-TemplateBuilder.STRATA_COPYFILE_STRUCTURE = [
-    "assets/js/main.js",
-    "assets/js/util.js",
-    "assets/css/images/overlay.png"
-];
-TemplateBuilder.DIMENSION_COPYFILE_STRUCTURE = [
-    "assets/js/main.js",
-    "assets/js/util.js",
-    "images/overlay.png",
-];
-TemplateBuilder.SPECTRAL_COPYFILE_STRUCTURE = [
-    "assets/css/images/arrow.svg",
-    "assets/css/images/bars.svg",
-    "assets/css/images/close.svg",
-    "assets/js/main.js",
-    "assets/js/util.js",
-    "assets/js/jquery.scrollex.min.js",
-    "assets/js/jquery.scrolly.min.js"
-];

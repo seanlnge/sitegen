@@ -39,35 +39,37 @@ exports.photographSite = exports.instagramScraper = void 0;
 const puppeteer_1 = __importStar(require("puppeteer"));
 const sharp_1 = __importDefault(require("sharp"));
 const path_1 = __importDefault(require("path"));
+const __1 = require("..");
 require('dotenv').config();
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 /**
  * Scrapes instagram
  * @returns string[]
  */
-function instagramScraper(handle, log) {
+function instagramScraper(handle) {
     return __awaiter(this, void 0, void 0, function* () {
         const browser = yield puppeteer_1.default.launch({ headless: true });
         const page = (yield browser.pages())[0];
-        log('Opening instagram.com');
+        (0, __1.log)('Opening instagram.com');
         yield page.goto("https://www.instagram.com", { waitUntil: 'networkidle2' });
-        log('Logging into account');
+        (0, __1.log)('Logging into account');
         yield page.click('#loginForm input[name="username"]');
         yield page.keyboard.type(process.env['INSTA_USER'], { delay: 50 });
         yield page.click('#loginForm input[name="password"]');
         yield page.keyboard.type(process.env['INSTA_PASS'], { delay: 50 });
         yield page.click('#loginForm button[type="submit"]');
-        log('Loading and scraping page for @' + handle);
+        (0, __1.log)('Loading and scraping page for @' + handle);
         yield page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
-        yield sleep(2000);
+        yield sleep(3000);
         const igdata = yield page.evaluate(() => {
+            var _a;
             const images = Array.from(document.querySelectorAll('img'));
-            const ppurl = images[3].src;
+            const ppurl = images.filter(x => x.classList.length == 18)[1].src;
             const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
             const bioElement = document.querySelector('section > div > span > div > span');
             return {
                 profilePicture: ppurl,
-                bio: bioElement ? bioElement.textContent : "",
+                bio: bioElement ? (_a = bioElement.textContent) !== null && _a !== void 0 ? _a : "" : "",
                 thumbnails,
             };
         });
@@ -87,7 +89,7 @@ function photographSite(siteUrl) {
         // Using { fullPage: true } is broken so set viewport to size of HTML body
         const boundingBox = (yield ((_a = (yield page.$('body'))) === null || _a === void 0 ? void 0 : _a.boundingBox()));
         if (!boundingBox)
-            throw new Error("fuck");
+            return (0, __1.error)("Error occured with build revision screenshot, continuing program", false);
         boundingBox.height = Math.floor(boundingBox.height);
         boundingBox.width = Math.floor(boundingBox.width);
         yield page.setViewport(boundingBox);

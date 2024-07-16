@@ -15,14 +15,12 @@ const scraper_1 = require("./scraper");
 const utils_1 = require("./utils");
 const messagechain_1 = require("./messagechain");
 const template_1 = require("./template");
-let start = Date.now();
-const log = (text) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
+const __1 = require("..");
 function Build(igHandle, photoCount) {
     return __awaiter(this, void 0, void 0, function* () {
-        start = Date.now();
-        const igdata = yield (0, scraper_1.instagramScraper)(igHandle, log);
-        log("Instagram scraped, choosing template");
-        const textPrompt = `I will give you the Instagram page for @${igHandle}. Pretend you are this user. Describe the purpose of your Instagram page, as well as what you would display if you were to turn it into a static single page website. <bio>${igdata.bio}</bio>`;
+        const igdata = yield (0, scraper_1.instagramScraper)(igHandle);
+        (0, __1.log)("Instagram scraped, parsing data");
+        const textPrompt = `I will give you the Instagram page for my client, @${igHandle}. Describe the purpose of this Instagram page, as well as the personality that this client might have, and the style and color scheme that would work best for them.\n<bio>${igdata.bio}</bio>\n<captions>\n${igdata.thumbnails.map((x) => x.alt).join('\n')}\n</captions>`;
         // Create list of images for model to parse
         const images = messagechain_1.MessageChain.ToImagesURL(igdata.thumbnails.slice(0, photoCount).map((x) => x.src));
         // Array full of chronological messages sent between model and script
@@ -32,25 +30,27 @@ function Build(igHandle, photoCount) {
         const siteDesign = yield messageChain.queryModel();
         yield messageChain.addModelMessage(siteDesign);
         // Share pictures of template to model and find best suited site
-        log("Prefered design found, choosing template");
-        const templateImages = messagechain_1.MessageChain.ToImagesB64(['templates/directive/directive.png', 'templates/directive/directiveWide.png', 'templates/strata/strata.png', 'templates/strata/strataWide.png', 'templates/dimension/dimension.png', 'templates/spectral/spectral.png', 'templates/spectral/spectralWide.png']);
-        const templatePrompt = `I have 4 website templates to choose from, Directive, Strata, Dimension, and Spectral. Pick which website template would work the best with this client. Respond in JSON adhering to the following format <json>{ "templateName": "directive" | "strata" | "dimension" | "spectral" }</json>.`;
+        (0, __1.log)("Prefered design found, choosing template");
+        const templateImages = messagechain_1.MessageChain.ToImagesB64(Object.keys(template_1.Templates).map(x => `templates/${x}/${x}.png`), true);
+        const templatePrompt = `I have ${Object.keys(template_1.Templates).length} website templates to choose from. Pick which website template would work the best with this Instagram page, and why you chose that specific template. Respond in JSON adhering to the following format <json>{ "templateName": ${Object.keys(template_1.Templates).map(x => `"${x}"`).join(" | ")}, "reasoning": string }</json>.`;
         yield messageChain.addUserMessage(templatePrompt, ...templateImages);
         const design = yield messageChain.queryModel();
         const designJSON = (0, utils_1.jsonParse)(design);
         messageChain.chain.pop();
         // Get code for specific design
         const siteName = designJSON["templateName"];
+        if (!(siteName in template_1.Templates))
+            (0, __1.error)("Error occured with model template, please try again");
         const template = new template_1.TemplateBuilder(siteName);
         // Fill images inside website
-        log("Template chosen, describing images");
+        (0, __1.log)("Template chosen, describing images");
         const imgdesc = yield messageChain.describeImagesAsync(images, "Describe this image in a paragraph, including the color scheme, the main item present in this image, the overall feeling that this image presents, as well as where on a website that this image might make sense.");
         const imageDescriptions = imgdesc.map((x, i) => ({
             description: x,
             url: `image${i}.jpg`,
             caption: igdata.thumbnails[i].alt
         }));
-        log("Images described, placing images");
+        (0, __1.log)("Images described, placing images");
         const imageFillPrompt = `I will give you a picture of the website template that would work best to match this client's needs. I will also give you a list of the client's instagram thumbnails and their caption. Choose which images should go into which spots to make the best website for the client. If no image fits into the spot, return a description of what type of image would fit instead. Follow the rules exactly. <rules>Do not alter the url of any images at all. Respond in JSON adhering to the following format { "IMAGE_A": string, , ... }</rules>\n<example>{ "IMAGE_A": "image3.jpg", "IMAGE_B": "picture of a palm tree in front of a beach", "IMAGE_C": "image2.jpg" }</example>\nHere are the images: ${JSON.stringify(imageDescriptions)}`;
         yield messageChain.addUserMessage(imageFillPrompt, messagechain_1.MessageChain.ToImageB64(`templates/${siteName}/showcase.png`));
         const fill = yield messageChain.queryModel();
@@ -66,13 +66,13 @@ function Build(igHandle, photoCount) {
                 continue;
             }
             // use dalle 3 to make image
-            log("Prompting image generation");
+            (0, __1.log)("Prompting image generation");
             imageTags[url] = yield messageChain.promptImageGenerator(bestFit);
         }
         imageTags["IMAGE_Z"] = igdata.profilePicture;
         template.setImages(imageTags);
         // Share HTML code and ask to change template to fit best
-        log("Images placed, building website");
+        (0, __1.log)("Images placed, building website");
         const entryPoints = template.getEntryNameList();
         const websitePrompt = `I will give you the HTML and CSS code to the website template. I will also give you a list of data entry points for you to write into to make the best possible website for the client. This will be the finished product so make sure that everything is filled out. You must follow the rules exactly. Here is the template:\n\`\`\`html\n${template.html}\n\`\`\`\n\`\`\`css\n${template.css}\n\`\`\`. Here are my entry points for you to fill out \`${JSON.stringify(entryPoints)}\` <rules>Respond in JSON format as such: { [key: entry point name]: string to fill spot }. Ensure that for each entry point that I provided, you fill out and put inside the returned JSON. Do not make up any information or assume. If more information is needed to fill a specific area, generalize and make a broad statement.</rules> <example>{ ..., "HEADER": "<strong>Brand Name</strong> we are a company<br />that specializes in awesome", "PARAGRAPH_1": "Lorem ipsum dolor sit amet", ... }</example>`;
         yield messageChain.addUserMessage(websitePrompt);
@@ -82,18 +82,22 @@ function Build(igHandle, photoCount) {
         const dataEntries = (0, utils_1.jsonParse)(website);
         template.setEntryPoints(new Map(Object.entries(dataEntries)));
         yield template.build();
-        log("Website built, revising website");
+        (0, __1.log)("Website built, revising website");
         // Revise build cycle
         const sitePicBuffer = yield (0, scraper_1.photographSite)('build/index.html');
-        const reviseChain = new messagechain_1.MessageChain();
-        reviseChain.addSystemMessage("You are a web designer altering a template for a client's Instagram page.");
+        if (sitePicBuffer instanceof Error) {
+            (0, __1.log)("Revision failed, website completed");
+            return;
+        }
+        const reviseChain = new messagechain_1.MessageChain({ logPath: 'reviselog.txt', saveLog: true });
+        yield reviseChain.addSystemMessage("You are a web designer altering a template for a client's Instagram page.");
         reviseChain.chain.push(...messageChain.chain.slice(-2));
-        yield reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Once you review this site, it will be the final version that gets sent to the client, so ensure that everything is to standard. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", messagechain_1.MessageChain.ToImageB64(sitePicBuffer));
+        yield reviseChain.addUserMessage("I will send you the picture of the website that you designed as a screenshot on an iPhone 12. Review it and think about what areas, styles, or words could be fixed up or changed. If there is any aspect that you would like to edit, resubmit the fields that you would like to change with the edited text. Only include the entry points that you wish to alter. If you do not wish to alter anything, return an empty JSON string. Once you review this site, it will be the final version that gets sent to the client, so ensure that everything is to standard. Respond in JSON following the following schema:\n```json\n{ [key: entry point name]: string to fill spot }\n```", messagechain_1.MessageChain.ToImageB64(sitePicBuffer));
         const changes = yield reviseChain.queryModel();
         const dataEntriesRevise = (0, utils_1.jsonParse)(changes);
         template.setEntryPoints(new Map(Object.entries(dataEntriesRevise)));
         yield template.build();
-        log("Website revised");
+        (0, __1.log)("Website revised");
     });
 }
 exports.Build = Build;
