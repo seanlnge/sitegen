@@ -26,12 +26,11 @@ export async function instagramScraper(handle: string) {
     await page.click('#loginForm button[type="submit"]');
 
     log('Loading and scraping page for @' + handle);
-    await page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
-    await sleep(3000);
+    await page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle0' });
 
     const igdata = await page.evaluate(() => {
         const images = Array.from(document.querySelectorAll('img'));
-        const ppurl = images.filter(x => x.classList.length == 18)[1].src;
+        const ppurl = (document.querySelector('header > section > div > div > a > img') as HTMLImageElement)?.src;
         const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
 
         const bioElement = document.querySelector('section > div > span > div > span');

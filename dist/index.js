@@ -47,7 +47,7 @@ let start = Date.now();
 const log = (text) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
 exports.log = log;
 const error = (text, exit = true) => {
-    console.log("\x1b[41m" + text);
+    console.log("\x1b[41m" + text + "\x1b[0m");
     if (exit)
         process.exitCode = 1;
     return new Error(text);

@@ -3,7 +3,6 @@ import { instagramScraper, photographSite } from './scraper';
 import { jsonParse } from './utils';
 import { MessageChain } from './messagechain';
 import { TemplateBuilder, Templates } from './template';
-import * as fs from 'fs';
 import { log, error } from '..';
 
 export async function Build(igHandle: string, photoCount: number) {
@@ -48,7 +47,7 @@ export async function Build(igHandle: string, photoCount: number) {
     }));
 
     log("Images described, placing images");
-    const imageFillPrompt = `I will give you a picture of the website template that would work best to match this client's needs. I will also give you a list of the client's instagram thumbnails and their caption. Choose which images should go into which spots to make the best website for the client. If no image fits into the spot, return a description of what type of image would fit instead. Follow the rules exactly. <rules>Do not alter the url of any images at all. Respond in JSON adhering to the following format { "IMAGE_A": string, , ... }</rules>\n<example>{ "IMAGE_A": "image3.jpg", "IMAGE_B": "picture of a palm tree in front of a beach", "IMAGE_C": "image2.jpg" }</example>\nHere are the images: ${JSON.stringify(imageDescriptions)}`;
+    const imageFillPrompt = `I will give you a picture of the website template that would work best to match this client's needs. I will also give you a list of the client's instagram thumbnails and their caption. Firstly, decide what each image spot should include and what should go into that image slot. Use the reasoning section to explain your reasoning behind where each image should go. Then, choose which images should go into which spots to make the best website for the client. If no image fits into the spot, return a description of what type of image would fit instead. Follow the rules exactly. <rules>\nDo not alter the url of any images at all. Respond in JSON adhering to the following format\n\`\`\`\nReasoning before you choose which images go where\n{ "IMAGE_A": string, , ... }\n\`\`\`\n</rules>\n<example>IMAGE_A should be a attention grabbing header that ... while IMAGE_B should be a delicious meal that ...\n{ "IMAGE_A": "image3.jpg", "IMAGE_B": "picture of a palm tree in front of a beach", "IMAGE_C": "image2.jpg" }</example>\nHere are the images: ${JSON.stringify(imageDescriptions)}`;
     await messageChain.addUserMessage(imageFillPrompt, MessageChain.ToImageB64(`templates/${siteName}/showcase.png`));
     const fill = await messageChain.queryModel();
     await messageChain.addModelMessage(fill);

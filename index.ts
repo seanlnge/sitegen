@@ -11,7 +11,7 @@ const fg = "\x1b[34m";
 let start = Date.now();
 export const log = (text: string) => console.log("\x1b[92m" + (Date.now() - start) + "ms \x1b[0m" + "- " + text);
 export const error = (text: string, exit: boolean = true) => {
-    console.log("\x1b[41m" + text);
+    console.log("\x1b[41m" + text + "\x1b[0m");
     if(exit) process.exitCode = 1;
     return new Error(text);
 };

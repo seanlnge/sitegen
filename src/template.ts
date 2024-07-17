@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import axios from 'axios';
 import { xmlParse } from "./utils";
+import { error } from "..";
 
 const DIRECTIVE_COPYFILE_STRUCTURE = [
     "assets/css/images/bottom-1280.svg",
@@ -145,7 +146,11 @@ export class TemplateBuilder {
                 method: "GET",
                 url: source,
                 responseType: "stream"
+            }).catch(() => {
+                this.imageDownloads.delete(imageName);
+                return error("Error downloading image, continuing build", false)
             });
+            if(imgData instanceof Error) continue;
             await imgData.data.pipe(fs.createWriteStream(`build/images/${imageName}.jpg`));
         }
 

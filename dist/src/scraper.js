@@ -59,17 +59,16 @@ function instagramScraper(handle) {
         yield page.keyboard.type(process.env['INSTA_PASS'], { delay: 50 });
         yield page.click('#loginForm button[type="submit"]');
         (0, __1.log)('Loading and scraping page for @' + handle);
-        yield page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle2' });
-        yield sleep(3000);
+        yield page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle0' });
         const igdata = yield page.evaluate(() => {
-            var _a;
+            var _a, _b;
             const images = Array.from(document.querySelectorAll('img'));
-            const ppurl = images.filter(x => x.classList.length == 18)[1].src;
+            const ppurl = (_a = document.querySelector('header > section > div > div > a > img')) === null || _a === void 0 ? void 0 : _a.src;
             const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
             const bioElement = document.querySelector('section > div > span > div > span');
             return {
                 profilePicture: ppurl,
-                bio: bioElement ? (_a = bioElement.textContent) !== null && _a !== void 0 ? _a : "" : "",
+                bio: bioElement ? (_b = bioElement.textContent) !== null && _b !== void 0 ? _b : "" : "",
                 thumbnails,
             };
         });

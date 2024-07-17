@@ -39,6 +39,7 @@ exports.TemplateBuilder = exports.Templates = void 0;
 const fs = __importStar(require("fs"));
 const axios_1 = __importDefault(require("axios"));
 const utils_1 = require("./utils");
+const __1 = require("..");
 const DIRECTIVE_COPYFILE_STRUCTURE = [
     "assets/css/images/bottom-1280.svg",
     "assets/css/images/bottom-1600.svg",
@@ -81,10 +82,10 @@ const BIGPICTURE_COPYFILE_STRUCTURE = [
     "assets/js/jquery.scrollex.min.js",
 ];
 exports.Templates = {
-    //"directive": DIRECTIVE_COPYFILE_STRUCTURE,
-    //"strata": STRATA_COPYFILE_STRUCTURE,
-    //"dimension": DIMENSION_COPYFILE_STRUCTURE,
-    //"spectral": SPECTRAL_COPYFILE_STRUCTURE,
+    "directive": DIRECTIVE_COPYFILE_STRUCTURE,
+    "strata": STRATA_COPYFILE_STRUCTURE,
+    "dimension": DIMENSION_COPYFILE_STRUCTURE,
+    "spectral": SPECTRAL_COPYFILE_STRUCTURE,
     "bigpicture": BIGPICTURE_COPYFILE_STRUCTURE,
 };
 class TemplateBuilder {
@@ -154,7 +155,12 @@ class TemplateBuilder {
                     method: "GET",
                     url: source,
                     responseType: "stream"
+                }).catch(() => {
+                    this.imageDownloads.delete(imageName);
+                    return (0, __1.error)("Error downloading image, continuing build", false);
                 });
+                if (imgData instanceof Error)
+                    continue;
                 yield imgData.data.pipe(fs.createWriteStream(`build/images/${imageName}.jpg`));
             }
             // Alter HTML and CSS to include data entry
