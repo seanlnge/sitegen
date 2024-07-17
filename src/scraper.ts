@@ -28,11 +28,10 @@ export async function instagramScraper(handle: string) {
     log('Loading and scraping page for @' + handle);
     await page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle0' });
 
-    const igdata = await page.evaluate(() => {
+    const igdata = await page.evaluate((handle) => {
         const images = Array.from(document.querySelectorAll('img'));
-        const ppurl = (document.querySelector('header > section > div > div > a > img') as HTMLImageElement)?.src;
+        const ppurl = (document.querySelector(`img[alt="${handle}'s profile picture"]`) as HTMLImageElement)?.src;
         const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
-
         const bioElement = document.querySelector('section > div > span > div > span');
         
         return {
@@ -40,7 +39,7 @@ export async function instagramScraper(handle: string) {
             bio: bioElement ? bioElement.textContent ?? "" : "",
             thumbnails,
         }
-    });
+    }, handle);
 
     await browser.close();
 

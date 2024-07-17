@@ -7,7 +7,7 @@ import { log, error } from '..';
 
 export async function Build(igHandle: string, photoCount: number) {
     const igdata = await instagramScraper(igHandle) as Record<string, any>;
-
+    
     log("Instagram scraped, parsing data");
     const textPrompt = `I will give you the Instagram page for my client, @${igHandle}. Describe the purpose of this Instagram page, as well as the personality that this client might have, and the style and color scheme that would work best for them.\n<bio>${igdata.bio}</bio>\n<captions>\n${igdata.thumbnails.map((x: any) => x.alt).join('\n')}\n</captions>`;
     

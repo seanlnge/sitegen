@@ -60,10 +60,10 @@ function instagramScraper(handle) {
         yield page.click('#loginForm button[type="submit"]');
         (0, __1.log)('Loading and scraping page for @' + handle);
         yield page.goto('https://www.instagram.com/' + handle, { waitUntil: 'networkidle0' });
-        const igdata = yield page.evaluate(() => {
+        const igdata = yield page.evaluate((handle) => {
             var _a, _b;
             const images = Array.from(document.querySelectorAll('img'));
-            const ppurl = (_a = document.querySelector('header > section > div > div > a > img')) === null || _a === void 0 ? void 0 : _a.src;
+            const ppurl = (_a = document.querySelector(`img[alt="${handle}'s profile picture"]`)) === null || _a === void 0 ? void 0 : _a.src;
             const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
             const bioElement = document.querySelector('section > div > span > div > span');
             return {
@@ -71,7 +71,7 @@ function instagramScraper(handle) {
                 bio: bioElement ? (_b = bioElement.textContent) !== null && _b !== void 0 ? _b : "" : "",
                 thumbnails,
             };
-        });
+        }, handle);
         yield browser.close();
         return igdata;
     });
