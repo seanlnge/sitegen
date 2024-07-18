@@ -36,21 +36,21 @@ After data entry, this will be the final rendition of the website, so ensure tha
 
 				<div class="box alt container">
 					<section class="feature left">
-						<a href="$IMAGE_B_SRC$" class="image icon solid fa-signal"><img src="$IMAGE_B_SRC$" alt="$IMAGE_B_ALT$" /></a>
+						<a href="$IMAGE_B_SRC$" class="image icon solid $POTENTIAL_IMAGE_B_FA_ICON$"><img src="$IMAGE_B_SRC$" alt="$IMAGE_B_ALT$" /></a>
 						<div class="content">
 							<h3>$SUBTITLE_1$</h3>
 							<p>$DESCRIPTION_1$</p>
 						</div>
 					</section>
 					<section class="feature right">
-						<a href="$IMAGE_C_SRC$" class="image icon solid fa-code"><img src="$IMAGE_C_SRC$" alt="$IMAGE_C_ALT$" /></a>
+						<a href="$IMAGE_C_SRC$" class="image icon solid $POTENTIAL_IMAGE_C_FA_ICON$"><img src="$IMAGE_C_SRC$" alt="$IMAGE_C_ALT$" /></a>
 						<div class="content">
 							<h3>$SUBTITLE_2$</h3>
 							<p>$DESCRIPTION_2$</p>
 						</div>
 					</section>
 					<section class="feature left">
-						<a href="$IMAGE_D_SRC$" class="image icon solid fa-mobile-alt"><img src="$IMAGE_D_SRC$" alt="$IMAGE_D_ALT$" /></a>
+						<a href="$IMAGE_D_SRC$" class="image icon solid $POTENTIAL_IMAGE_D_FA_ICON$"><img src="$IMAGE_D_SRC$" alt="$IMAGE_D_ALT$" /></a>
 						<div class="content">
 							<h3>$SUBTITLE_3$</h3>
 							<p>$DESCRIPTION_3$</p>
@@ -62,11 +62,14 @@ After data entry, this will be the final rendition of the website, so ensure tha
 					<h3>$DIV_TITLE$</h3>
 					<p>$DIV_PARAGRAPH$</p>
 					<ul class="actions special">
-						<li><a href="#" class="button">$BUTTON$</a></li>
+						<li><a href="$LINK$" class="button">$BUTTON$</a></li>
 					</ul>
 				</footer>
 
 			</div>
+
+            <!-- Potential extra scripts should also go into here -->
+            $POTENTIAL_EXTRA_ELEMENTS$
 
 		<!-- Footer -->
 			<div id="footer">

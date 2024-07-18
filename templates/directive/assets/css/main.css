@@ -1,6 +1,32 @@
 /*
+INSTRUCTIONS FOR MODEL
+
+The default colors for the site are 
+
+    --body-background: #ffffff;
+    --main-text-color: #5b5b5b;
+    --header-text-color: #ffffff;
+    --primary-accent: #4eb980;
+    --secondary-accent: #544d55;
+
+All entry points will be inside of dollar signs
+All entry points inside of this CSS file must be filled out
+
+Ensure that the color scheme that you choose matches the aesthetic of the client, along with looking good
+If you wish not to change a color, you still must fill out the entry points with the default color shown abovePotential extra CSS will be appended to the current CSS, so ensure that any extra CSS takes the highest precedence
+Potential extra CSS will be appended to the current CSS, so ensure that any extra CSS takes the highest precedence
 */
+@import url(fontawesome-all.min.css);
 @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300italic,400,400italic,600,600italic,700,700italic);
+
+:root {
+    --body-background: $BODY_BACKGROUND$;
+    --main-text-color: $MAIN_TEXT_COLOR$;
+    --header-text-color: $HEADER_TEXT_COLOR$;
+    --primary-accent: $PRIMARY_ACCENT$;
+    --secondary-accent: $SECONDARY_ACCENT$;
+}
+
 a,b,body,code,div,footer,form,h1,h2,h3,h4,h5,h6,header,html,img,label,li,p,s,section,span,ul{
     margin:0;
     padding:0;
@@ -41,7 +67,7 @@ body,html{
     height:100%
 }
 body{
-    background:#fff
+    background:var(--body-background)
 }
 body.is-preload *,body.is-preload :after,body.is-preload :before{
     -moz-animation:none!important;
@@ -54,7 +80,7 @@ body.is-preload *,body.is-preload :after,body.is-preload :before{
     transition:none!important
 }
 body,input,textarea{
-    color:#6e6e6e;
+    color:var(--main-text-color);
     font-family:'Source Sans Pro',sans-serif;
     font-size:16pt;
     font-weight:400;
@@ -66,7 +92,7 @@ a{
     -ms-transition:color .2s ease-in-out,border-bottom-color .2s ease-in-out;
     transition:color .2s ease-in-out,border-bottom-color .2s ease-in-out;
     border-bottom:dotted 1px;
-    color:#4eb980;
+    color:var(--primary-accent);
     text-decoration:none
 }
 a:hover{
@@ -74,13 +100,13 @@ a:hover{
 }
 b{
     font-weight:600;
-    color:#5b5b5b
+    color:var(--main-text-color)
 }
 form,p,ul{
     margin:0 0 2em 0
 }
 h1,h2,h3,h4,h5,h6{
-    color:#5b5b5b;
+    color:var(--main-text-color);
     font-weight:700;
     letter-spacing:.125em;
     line-height:1.75em;
@@ -458,7 +484,7 @@ footer.major:after{
 }
 label{
     display:block;
-    color:#5b5b5b;
+    color:var(--main-text-color);
     font-size:.8em;
     font-weight:700;
     letter-spacing:.125em;
@@ -489,7 +515,7 @@ input[type=email],input[type=password],input[type=text],textarea{
 }
 input[type=email]:focus,input[type=password]:focus,input[type=text]:focus,textarea:focus{
     background:rgba(224,224,224,.15);
-    border-color:#4eb980
+    border-color:var(--primary-accent)
 }
 input[type=email],input[type=password],input[type=text]{
     line-height:1em
@@ -536,15 +562,10 @@ textarea{
     width:100%
 }
 .image img{
-    display:block
-}
-.image.feature{
     display:block;
-    margin:0 0 2em 0
-}
-.image.feature img{
-    display:block;
-    width:100%
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .image.icon{
     -moz-perspective:500px;
@@ -557,7 +578,7 @@ textarea{
     -webkit-transition:-webkit-transform .1s ease-in-out,font-size .1s ease-in-out;
     -ms-transition:-ms-transform .1s ease-in-out,font-size .1s ease-in-out;
     transition:transform .1s ease-in-out,font-size .1s ease-in-out;
-    color:#fff;
+    color:var(--body-background);
     font-size:6em;
     height:1em;
     left:50%;
@@ -710,10 +731,10 @@ ul.icons li a:hover,ul.icons li span:hover{
     -webkit-transition:color .2s ease-in-out,background-color .2s ease-in-out;
     -ms-transition:color .2s ease-in-out,background-color .2s ease-in-out;
     transition:color .2s ease-in-out,background-color .2s ease-in-out;
-    background:#544d55;
+    background:var(--secondary-accent);
     border-radius:4px;
     border:0;
-    color:#fff;
+    color:var(--body-background);
     cursor:pointer;
     display:inline-block;
     font-size:.9em;
@@ -727,15 +748,15 @@ ul.icons li a:hover,ul.icons li span:hover{
     text-transform:uppercase
 }
 .button:hover,input[type=button]:hover,input[type=reset]:hover,input[type=submit]:hover{
-    background:#6e6570
+    background:var(--secondary-accent)
 }
 .button:active,input[type=button]:active,input[type=reset]:active,input[type=submit]:active{
-    background:#474148
+    background:color-mix(in srgb, var(--secondary-accent) 85%, black)
 }
 .button.alt,input[type=button].alt,input[type=reset].alt,input[type=submit].alt{
     background:0 0;
     box-shadow:inset 0 0 0 1px rgba(224,224,224,.75);
-    color:#544d55
+    color:var(--secondary-accent)
 }
 .button.alt:hover,input[type=button].alt:hover,input[type=reset].alt:hover,input[type=submit].alt:hover{
     background:rgba(224,224,224,.15)
@@ -744,7 +765,7 @@ ul.icons li a:hover,ul.icons li span:hover{
     background:rgba(224,224,224,.35)
 }
 .box{
-    background:#fff;
+    background:var(--body-background);
     border:solid 1px rgba(224,224,224,.75);
     margin-bottom:6em;
     padding:3.5em
@@ -858,22 +879,22 @@ ul.icons li a:hover,ul.icons li span:hover{
 }
 #header a:hover{
     border-bottom-color:transparent;
-    color:#4eb980
+    color:var(--primary-accent)
 }
 #header b{
-    color:#fff
+    color:var(--header-text-color)
 }
 #header h1,#header h2,#header h3,#header h4,#header h5,#header h6{
-    color:#fff
+    color:var(--header-text-color);
 }
 #header .button,#header input[type=button],#header input[type=reset],#header input[type=submit]{
-    background:#fff;
-    color:#544d55
+    background:var(--header-text-color);
+    color:var(--secondary-accent);
 }
 #header .logo{
-    background:#4eb980;
+    background:var(--primary-accent);
     border-radius:100%;
-    color:#fff;
+    color:var(--header-text-color);
     cursor:default;
     display:inline-block;
     font-size:2.25em;
@@ -894,12 +915,12 @@ ul.icons li a:hover,ul.icons li span:hover{
 }
 #footer{
     background-attachment:scroll;
-    background-color:#4eb980;
+    background-color:var(--primary-accent);
     background-image:url(images/bottom-3200.svg);
     background-position:top center;
     background-repeat:repeat-x;
     background-size:3200px 460px;
-    color:rgba(255,255,255,.8);
+    color:color-mix(in srgb, var(--body-background) 80%, transparent);
     margin-top:-260px;
     padding:calc(460px + 6em) 0 10em 0;
     position:relative;
@@ -916,28 +937,28 @@ ul.icons li a:hover,ul.icons li span:hover{
     z-index:0
 }
 #footer a{
-    color:#fff
+    color:var(--header-text-color)
 }
 #footer b{
-    color:#fff
+    color:var(--header-text-color)
 }
 #footer h1,#footer h2,#footer h3,#footer h4,#footer h5,#footer h6{
-    color:#fff
+    color:var(--header-text-color)
 }
 #footer header p{
     color:rgba(255,255,255,.5)
 }
 #footer .button,#footer input[type=button],#footer input[type=reset],#footer input[type=submit]{
-    background:#fff;
-    box-shadow:inset 0 0 0 1px #fff;
-    color:#4eb980
+    background:var(--body-background);
+    box-shadow:inset 0 0 0 1px var(--body-background);
+    color:var(--primary-accent)
 }
 #footer .button:hover,#footer input[type=button]:hover,#footer input[type=reset]:hover,#footer input[type=submit]:hover{
     background:rgba(224,224,224,.15);
-    color:#fff
+    color:var(--body-background)
 }
 #footer input[type=email]:focus,#footer input[type=password]:focus,#footer input[type=text]:focus,#footer textarea:focus{
-    border-color:#fff
+    border-color:var(--body-background)
 }
 #footer form{
     margin:3em 0
@@ -963,7 +984,7 @@ ul.icons li a:hover,ul.icons li span:hover{
     color:inherit
 }
 #footer .copyright li a:hover,#footer .copyright li span:hover{
-    color:#fff
+    color:var(--header-text-color)
 }
 #main{
     padding:6em 0 5em 0;
@@ -981,7 +1002,7 @@ ul.icons li a:hover,ul.icons li span:hover{
     z-index:-1
 }
 #main footer.major,#main header.major{
-    background:#fff
+    background:var(--body-background)
 }
 @media screen and (max-width:1680px){
     body,input,textarea{
@@ -1114,7 +1135,7 @@ ul.icons li a:hover,ul.icons li span:hover{
         margin-bottom:2em
     }
     .feature{
-        background:#fff;
+        background:var(--body-background);
         display:block;
         height:auto;
         margin-bottom:2em

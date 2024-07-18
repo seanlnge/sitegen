@@ -23,7 +23,7 @@ After data entry, this will be the final rendition of the website, so ensure tha
 				<!-- Header -->
 					<header id="header">
 						<div class="logo">
-							<span class="icon fa-gem"></span>
+                            <img class="icon avatar" src="$IMAGE_Z_SRC$" />
 						</div>
 						<div class="content">
 							<div class="inner">
@@ -33,6 +33,7 @@ After data entry, this will be the final rendition of the website, so ensure tha
 						</div>
 						<nav>
 							<ul>
+                                <!-- Highly recommended that these be short titles, 12 characters or less -->
 								<li><a href="#section1">$SECTION_1_SHORT_TITLE$</a></li>
 								<li><a href="#section2">$SECTION_2_SHORT_TITLE$</a></li>
 								<li><a href="#section3">$SECTION_3_SHORT_TITLE$</a></li>
@@ -48,18 +49,21 @@ After data entry, this will be the final rendition of the website, so ensure tha
 								<h2 class="major">$SECTION_1_TITLE$</h2>
 								<span class="image main"><img src="$IMAGE_B_SRC$" alt="$IMAGE_B_ALT$" /></span>
 								<p>$SECTION_1_PARAGRAPH$</p>
+                                $POTENTIAL_SECTION_1_EXTRA_ELEMENTS$
 							</article>
 
 							<article id="section2">
 								<h2 class="major">$SECTION_2_TITLE$</h2>
 								<span class="image main"><img src="$IMAGE_C_SRC$" alt="$IMAGE_C_ALT$" /></span>
 								<p>$SECTION_2_PARAGRAPH$</p>
+                                $POTENTIAL_SECTION_2_EXTRA_ELEMENTS$
 							</article>
 
 							<article id="section3">
 								<h2 class="major">$SECTION_3_TITLE$</h2>
 								<span class="image main"><img src="$IMAGE_D_SRC$" alt="$IMAGE_D_ALT$" /></span>
 								<p>$SECTION_3_PARAGRAPH$</p>
+                                $POTENTIAL_SECTION_3_EXTRA_ELEMENTS$
 							</article>
 
 						<!-- Contact -->
@@ -100,6 +104,8 @@ After data entry, this will be the final rendition of the website, so ensure tha
 
 		<!-- BG -->
 			<div id="bg"></div>
+
+            $POTENTIAL_EXTRA_BODY$
 
 		<!-- Scripts -->
 			<script src="assets/js/jquery.min.js"></script>

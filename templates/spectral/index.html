@@ -44,7 +44,10 @@ After data entry, this will be the final rendition of the website, so ensure tha
 				<!-- Banner -->
 					<section id="banner">
 						<div class="inner">
-                            <img class="logo icon" src="$IMAGE_Z_SRC$" /><br />
+                            <div class="logo">
+                                <img class="icon avatar" src="$IMAGE_Z_SRC$">
+                            </div>
+                            <br />
 							<h2>$SITE_TITLE$</h2>
 							<p>$MAIN_BLURB$</p>
 						</div>
@@ -57,6 +60,7 @@ After data entry, this will be the final rendition of the website, so ensure tha
 							<header class="major">
 								<h2>$SUBTITLE_1$</h2>
 								<p>$PARAGRAPH_1$</p>
+                                $POTENTIAL_SECTION_1_EXTRA_ELEMENTS$
 							</header>
 						</div>
 					</section>
@@ -81,6 +85,7 @@ After data entry, this will be the final rendition of the website, so ensure tha
 								<p>$PARAGRAPH_4$</p>
 							</div>
 						</section>
+                        $POTENTIAL_SECTION_2_EXTRA_ELEMENTS$
 					</section>
 
 				<!-- Three -->
@@ -91,15 +96,16 @@ After data entry, this will be the final rendition of the website, so ensure tha
 								<p>$PARAGRAPH_5$</p>
 							</header>
 							<ul class="features">
-								<li class="icon $FA_ICON_NAME_1$">
+								<li class="icon solid $FA_ICON_NAMES_1$">
 									<h3>$SUBTITLE_6$</h3>
 									<p>$PARAGRAPH_6$</p>
 								</li>
-								<li class="icon solid $FA_ICON_NAME_2$">
+								<li class="icon solid $FA_ICON_NAMES_2$">
 									<h3>$SUBTITLE_7$</h3>
 									<p>$PARAGRAPH_7$</p>
 								</li>
 							</ul>
+                            $POTENTIAL_SECTION_3_EXTRA_ELEMENTS$
 						</div>
 					</section>
 
@@ -116,6 +122,9 @@ After data entry, this will be the final rendition of the website, so ensure tha
 							</ul>
 						</div>
 					</section>
+                    
+                    <!-- Potential extra scripts should go into here -->
+                    $POTENTIAL_EXTRA_ELEMENTS$
 
 				<!-- Footer -->
 					<footer id="footer">

@@ -3,17 +3,17 @@ INSTRUCTIONS FOR MODEL
 
 The default colors for the site are 
 
-    --body-background-color: #FFF;
+    --body-background-color: #ffffff;
     --body-text-color: #39454b;
 
-    --button-text-color: #FFF;
+    --button-text-color: #ffffff;
     --button-style1-color: #98c593;
     --button-style2-color: #e5e6e7;
 
     --input-border-color: #e5e6e7;
     --input-border-color-focused: #9ac8e9;
 
-    --main-primary: #fff;
+    --main-primary: #ffffff;
     --main-secondary: #f5f6f7;
 
     --footer-text-color: #b9babb;
@@ -22,8 +22,13 @@ The default colors for the site are
 All entry points will be inside of dollar signs
 All entry points inside of this CSS file must be filled out
 
-If you wish not to change a color, use the default color
+Ensure that the color scheme that you choose matches the aesthetic of the client, along with looking good
+If you wish not to change a color, you still must fill out the entry points with the default color shown abovePotential extra CSS will be appended to the current CSS, so ensure that any extra CSS takes the highest precedence
+Potential extra CSS will be appended to the current CSS, so ensure that any extra CSS takes the highest precedence
 */
+@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900);
+@import url(fontawesome-all.min.css);
+
 :root {
     --body-background-color: $BODY_BACKGROUND_COLOR$;
     --body-text-color: $BODY_TEXT_COLOR$;
@@ -41,8 +46,6 @@ If you wish not to change a color, use the default color
     --footer-text-color: $FOOTER_TEXT_COLOR$;
     --footer-background: $FOOTER_BACKGROUND_COLOR$;
 }
-
-@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900);
 
 a,article,body,div,footer,form,h1,h2,h3,h4,h5,h6,header,html,i,img,label,li,menu,nav,p,s,section,span,ul{
     margin:0;
@@ -721,7 +724,9 @@ textarea{
 }
 .image.fit{
     display:block;
-    width:100%
+    width:100%;
+    height:100%;
+    object-fit: cover;
 }
 .image.left{
     float:left;
@@ -1481,7 +1486,8 @@ body{
     background-size:256px 256px,cover;
     background-attachment:fixed,fixed;
     background-position:top left,bottom center;
-    background-repeat:repeat,no-repeat
+    background-repeat:repeat,no-repeat;
+    color: var(--intro-text-color);
 }
 #one{
     background:url(images/overlay.png),url(../../$IMAGE_B_SRC$);

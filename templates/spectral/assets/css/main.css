@@ -4,9 +4,9 @@ INSTRUCTIONS FOR MODEL
 The default colors for the site are 
 
     --body-background: #2e3842;
-    --body-text-color: #fff;
+    --body-text-color: #ffffff;
 
-    --button-hover: #888;
+    --button-hover: #888888;
     --button-primary: #ed4731;
 
     --style1-primary: #00ffcc;
@@ -19,8 +19,13 @@ The default colors for the site are
 All entry points will be inside of dollar signs
 All entry points inside of this CSS file must be filled out
 
-If you wish not to change a color, use the default color
+Ensure that the color scheme that you choose matches the aesthetic of the client, along with looking good
+If you wish not to change a color, you still must fill out the entry points with the default color shown abovePotential extra CSS will be appended to the current CSS, so ensure that any extra CSS takes the highest precedence
+Potential extra CSS will be appended to the current CSS, so ensure that any extra CSS takes the highest precedence
 */
+@import url(fontawesome-all.min.css);
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,600italic,800,800italic);
+
 :root {
     --body-background: $BODY_BACKGROUND_COLOR$;
     --body-text-color: $BODY_TEXT_COLOR$;
@@ -36,7 +41,6 @@ If you wish not to change a color, use the default color
     --section3-background: $SECTION_3_BACKGROUND_COLOR$;
 }
 
-@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,600italic,800,800italic);
 a,b,body,div,footer,h1,h2,h3,h4,h5,h6,header,html,img,label,li,menu,nav,p,s,section,span,ul{
     margin:0;
     padding:0;
@@ -1416,7 +1420,13 @@ body.is-menu-visible #menu {
     font-size:2.25em;
     height:2.35em;
     line-height:2.35em;
-    margin:0;
+    margin:20px;
     text-align:center;
     width:2.35em
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 100%;
 }

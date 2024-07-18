@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { ChatCompletionContentPartImage, ChatCompletionMessageParam } from "openai/resources";
 import * as fs from "fs";
+import { sleep } from "./utils";
+import { error } from "..";
 
 const openai = new OpenAI({
     apiKey: process.env['OPENAI_API_KEY'],
@@ -75,11 +77,17 @@ export class MessageChain {
         return img.data[0].url!;
     }
 
-    async queryModel(model: string = 'gpt-4o', start: number = 0, end: number = this.chain.length): Promise<string> {
+    async queryModel(model: string = 'gpt-4o', json: boolean = false, start: number = 0, end: number = this.chain.length): Promise<string> {
         const messages = await this.getChain(start, end);
         await this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
 
-        const resp = (await openai.chat.completions.create({ messages, model }))?.choices[0]?.message?.content;
+        const resp = (await openai.chat.completions.create({
+            messages,
+            model,
+            response_format: {
+                type: json ? "json_object" : "text"
+            }
+        }))?.choices[0]?.message?.content;
         if(!resp) {
             await this.writeLog("Model '" + model + "' Query Failed on Chain Indices " + start + " to " + end);
             throw new Error("Model query failed");
@@ -136,12 +144,26 @@ export class MessageChain {
         return resp;
     }
 
+    async describeImages(images: ChatCompletionContentPartImage[], prompt: string = "Describe this image"): Promise<string[]> {
+        const descriptions = await Promise.all(
+            images.map(image => 
+                Promise.race([
+                    this.describeImage(image, prompt),
+                    sleep(15000)
+                ])
+            )
+        );
+        
+        return descriptions.filter(x => typeof x == 'string' ? true : false) as string[];
+    }
+
     async describeImagesAsync(images: ChatCompletionContentPartImage[], prompt: string = "Describe this image"): Promise<string[]> {
         const resp = [];
 
         for(let image of images) {
             const desc = await this.describeImage(image, prompt);
-            resp.push(desc); 
+            if(!desc) continue;
+            resp.push(desc);
         }
 
         return resp;

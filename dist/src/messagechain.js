@@ -38,6 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessageChain = void 0;
 const openai_1 = __importDefault(require("openai"));
 const fs = __importStar(require("fs"));
+const utils_1 = require("./utils");
 const openai = new openai_1.default({
     apiKey: process.env['OPENAI_API_KEY'],
 });
@@ -106,12 +107,18 @@ class MessageChain {
             return img.data[0].url;
         });
     }
-    queryModel(model = 'gpt-4o', start = 0, end = this.chain.length) {
+    queryModel(model = 'gpt-4o', json = false, start = 0, end = this.chain.length) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             const messages = yield this.getChain(start, end);
             yield this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
-            const resp = (_c = (_b = (_a = (yield openai.chat.completions.create({ messages, model }))) === null || _a === void 0 ? void 0 : _a.choices[0]) === null || _b === void 0 ? void 0 : _b.message) === null || _c === void 0 ? void 0 : _c.content;
+            const resp = (_c = (_b = (_a = (yield openai.chat.completions.create({
+                messages,
+                model,
+                response_format: {
+                    type: json ? "json_object" : "text"
+                }
+            }))) === null || _a === void 0 ? void 0 : _a.choices[0]) === null || _b === void 0 ? void 0 : _b.message) === null || _c === void 0 ? void 0 : _c.content;
             if (!resp) {
                 yield this.writeLog("Model '" + model + "' Query Failed on Chain Indices " + start + " to " + end);
                 throw new Error("Model query failed");
@@ -160,11 +167,22 @@ class MessageChain {
             return resp;
         });
     }
+    describeImages(images, prompt = "Describe this image") {
+        return __awaiter(this, void 0, void 0, function* () {
+            const descriptions = yield Promise.all(images.map(image => Promise.race([
+                this.describeImage(image, prompt),
+                (0, utils_1.sleep)(15000)
+            ])));
+            return descriptions.filter(x => typeof x == 'string' ? true : false);
+        });
+    }
     describeImagesAsync(images, prompt = "Describe this image") {
         return __awaiter(this, void 0, void 0, function* () {
             const resp = [];
             for (let image of images) {
                 const desc = yield this.describeImage(image, prompt);
+                if (!desc)
+                    continue;
                 resp.push(desc);
             }
             return resp;

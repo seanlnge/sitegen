@@ -39,6 +39,7 @@ exports.error = exports.log = void 0;
 const src_1 = require("./src");
 const prompt_sync_1 = __importDefault(require("prompt-sync"));
 const path = __importStar(require("path"));
+const template_1 = require("./src/template");
 const prompt = (0, prompt_sync_1.default)();
 const bg = "\x1b[46m\x1b[30m";
 const reset = "\x1b[0m";
@@ -53,17 +54,34 @@ const error = (text, exit = true) => {
     return new Error(text);
 };
 exports.error = error;
+const ask = (m, after = "") => prompt(fg + m + reset + after);
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(bg + " ---=--== SiteGEN ==--=--- " + reset);
-        const CLIENT_INSTAGRAM_HANDLE = prompt(fg + "Instagram handle: @");
+        const CLIENT_INSTAGRAM_HANDLE = ask("Instagram handle: ", "@");
         if (!CLIENT_INSTAGRAM_HANDLE)
-            throw new Error("Please enter Instagram handle");
-        const PHOTO_COUNT = parseInt(prompt(fg + "Photo Scrape Count (default 10): ")) || 10;
+            return (0, exports.error)("Please enter Instagram handle");
+        const PHOTO_COUNT = parseInt(ask("Photo scrape count (default 10): ")) || 10;
+        let template;
+        if (ask("Choose Template (y/n): ").toLowerCase()[0] == "y") {
+            console.log(fg + "Template names: " + reset + Object.keys(template_1.Templates).map(x => `\x1b]8;;https://html5up.net/uploads/demos/${x}/\x1b\\${x}\x1b]8;;\x1b\\`).join(', ') + reset);
+            template = ask("Choose your template: ").toLowerCase();
+        }
         start = Date.now();
-        yield (0, src_1.Build)(CLIENT_INSTAGRAM_HANDLE, PHOTO_COUNT);
+        const build = yield (0, src_1.Build)(CLIENT_INSTAGRAM_HANDLE, PHOTO_COUNT, template);
         const url = `\x1b]8;;${path.resolve("build/index.html")}\x1b\\ /build/index.html \x1b]8;;\x1b\\`;
-        console.log(`${fg}Website generated under ${bg}${url}${reset}\n${fg}Thank you for using SiteGEN${reset}`);
+        console.log(`${fg}Website generated under ${reset}${url}${reset}`);
+        let chain = build.messageChain;
+        while (ask("Revise Site (y/n): ").toLowerCase()[0] == "y") {
+            const comments = ask("Any revision comments: ");
+            start = Date.now();
+            const reviseChain = yield (0, src_1.ReviseBuild)(chain, build.template, comments, chain == build.messageChain);
+            if (!reviseChain)
+                continue;
+            chain = reviseChain;
+            console.log(`${fg}Website revised under ${reset}${url}${reset}`);
+        }
+        console.log(`\n${fg}Thank you for using SiteGEN${reset}`);
     });
 }
 main();

@@ -48,3 +48,7 @@ export function xmlParse(str: string, tag: string) {
 
     return null;
 }
+
+export function sleep(ms: number) {
+    return new Promise(res => setTimeout(res, ms));
+}

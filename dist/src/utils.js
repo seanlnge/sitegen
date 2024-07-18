@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.xmlParse = exports.jsonParse = void 0;
+exports.sleep = exports.xmlParse = exports.jsonParse = void 0;
 /**
  * Finds and returns first instance of completed JSON inside a string
  * @param str String that has JSON
@@ -50,3 +50,7 @@ function xmlParse(str, tag) {
     return null;
 }
 exports.xmlParse = xmlParse;
+function sleep(ms) {
+    return new Promise(res => setTimeout(res, ms));
+}
+exports.sleep = sleep;

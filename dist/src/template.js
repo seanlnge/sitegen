@@ -37,7 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TemplateBuilder = exports.Templates = void 0;
 const fs = __importStar(require("fs"));
-const axios_1 = __importDefault(require("axios"));
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const utils_1 = require("./utils");
 const __1 = require("..");
 const DIRECTIVE_COPYFILE_STRUCTURE = [
@@ -86,7 +86,7 @@ exports.Templates = {
     "strata": STRATA_COPYFILE_STRUCTURE,
     "dimension": DIMENSION_COPYFILE_STRUCTURE,
     "spectral": SPECTRAL_COPYFILE_STRUCTURE,
-    "bigpicture": BIGPICTURE_COPYFILE_STRUCTURE,
+    "big-picture": BIGPICTURE_COPYFILE_STRUCTURE,
 };
 class TemplateBuilder {
     constructor(template) {
@@ -95,6 +95,7 @@ class TemplateBuilder {
         this.css = fs.readFileSync(`templates/${template}/assets/css/main.css`).toString();
         this.imageDownloads = new Map();
         this.entryPoints = new Map();
+        this.entryPoints.set("POTENTIAL_EXTRA_CSS", "");
         // Populate this.entryPoints with all entry names found in HTML and CSS
         let index = 0;
         while (this.html.slice(index).indexOf("$") !== -1) {
@@ -114,7 +115,8 @@ class TemplateBuilder {
     setImages(images) {
         for (const image in images) {
             this.imageDownloads.set(image, images[image]);
-            this.entryPoints.set(`${image}_SRC`, `images/${image}.jpg`);
+            const extension = images[image].split('?')[0].split('.').slice(-1)[0];
+            this.entryPoints.set(`${image}_SRC`, `images/${image}.${extension}`);
         }
     }
     getEntryNameList() {
@@ -129,7 +131,7 @@ class TemplateBuilder {
     build() {
         return __awaiter(this, void 0, void 0, function* () {
             let html = `<DOCTYPE! html>\n<html>\n${(0, utils_1.xmlParse)(this.html, "html")}\n</html>`;
-            let css = this.css.split('*/')[1];
+            let css = this.css.split('*/').slice(1).join('*/');
             // Delete old build folder if existent
             if (fs.existsSync("build"))
                 yield fs.promises.rm("build", { force: true, recursive: true });
@@ -151,17 +153,13 @@ class TemplateBuilder {
             }
             // Add images to build/images folder
             for (const [imageName, source] of this.imageDownloads.entries()) {
-                const imgData = yield (0, axios_1.default)({
-                    method: "GET",
-                    url: source,
-                    responseType: "stream"
-                }).catch(() => {
-                    this.imageDownloads.delete(imageName);
+                const extension = source.split('?')[0].split('.').slice(-1)[0];
+                const imgData = yield (0, node_fetch_1.default)(source).catch(() => {
                     return (0, __1.error)("Error downloading image, continuing build", false);
                 });
                 if (imgData instanceof Error)
                     continue;
-                yield imgData.data.pipe(fs.createWriteStream(`build/images/${imageName}.jpg`));
+                yield fs.promises.writeFile(`build/images/${imageName}.${extension}`, yield imgData.buffer());
             }
             // Alter HTML and CSS to include data entry
             for (const [entryName, entry] of this.entryPoints.entries()) {
@@ -170,6 +168,7 @@ class TemplateBuilder {
                 while (css.indexOf(`$${entryName}$`) !== -1)
                     css = css.replace(`$${entryName}$`, entry);
             }
+            css += "\n" + this.entryPoints.get("POTENTIAL_EXTRA_CSS");
             // Finalize build
             yield fs.promises.writeFile("build/index.html", html);
             yield fs.promises.writeFile("build/assets/css/main.css", css);

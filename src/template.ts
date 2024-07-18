@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import axios from 'axios';
+import fetch from "node-fetch";
 import { xmlParse } from "./utils";
 import { error } from "..";
 
@@ -50,7 +50,7 @@ export const Templates = {
     "strata": STRATA_COPYFILE_STRUCTURE,
     "dimension": DIMENSION_COPYFILE_STRUCTURE,
     "spectral": SPECTRAL_COPYFILE_STRUCTURE,
-    "bigpicture": BIGPICTURE_COPYFILE_STRUCTURE,
+    "big-picture": BIGPICTURE_COPYFILE_STRUCTURE,
 }
 
 export type TemplateImage = {
@@ -72,6 +72,8 @@ export class TemplateBuilder {
 
         this.imageDownloads = new Map<string, string>();
         this.entryPoints = new Map<string, string>();
+
+        this.entryPoints.set("POTENTIAL_EXTRA_CSS", "");
 
         // Populate this.entryPoints with all entry names found in HTML and CSS
         let index = 0;
@@ -96,7 +98,8 @@ export class TemplateBuilder {
     setImages(images: { [key: string]: string }) {
         for(const image in images) {
             this.imageDownloads.set(image, images[image]);
-            this.entryPoints.set(`${image}_SRC`, `images/${image}.jpg`);
+            const extension = images[image].split('?')[0].split('.').slice(-1)[0];
+            this.entryPoints.set(`${image}_SRC`, `images/${image}.${extension}`);
         }
     }
 
@@ -113,7 +116,7 @@ export class TemplateBuilder {
 
     async build() {
         let html = `<DOCTYPE! html>\n<html>\n${xmlParse(this.html, "html")}\n</html>`;
-        let css = this.css.split('*/')[1];
+        let css = this.css.split('*/').slice(1).join('*/');
 
         // Delete old build folder if existent
         if(fs.existsSync("build")) await fs.promises.rm("build", { force: true, recursive: true });
@@ -142,16 +145,12 @@ export class TemplateBuilder {
 
         // Add images to build/images folder
         for(const [imageName, source] of this.imageDownloads.entries()) {
-            const imgData = await axios({
-                method: "GET",
-                url: source,
-                responseType: "stream"
-            }).catch(() => {
-                this.imageDownloads.delete(imageName);
+            const extension = source.split('?')[0].split('.').slice(-1)[0];
+            const imgData = await fetch(source).catch(() => {
                 return error("Error downloading image, continuing build", false)
             });
             if(imgData instanceof Error) continue;
-            await imgData.data.pipe(fs.createWriteStream(`build/images/${imageName}.jpg`));
+            await fs.promises.writeFile(`build/images/${imageName}.${extension}`, await imgData.buffer());
         }
 
         // Alter HTML and CSS to include data entry
@@ -159,6 +158,7 @@ export class TemplateBuilder {
             while(html.indexOf(`$${entryName}$`) !== -1) html = html.replace(`$${entryName}$`, entry);
             while(css.indexOf(`$${entryName}$`) !== -1) css = css.replace(`$${entryName}$`, entry);
         }
+        css += "\n" + this.entryPoints.get("POTENTIAL_EXTRA_CSS");
 
         // Finalize build
         await fs.promises.writeFile("build/index.html", html);
