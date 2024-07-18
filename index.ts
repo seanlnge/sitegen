@@ -1,4 +1,4 @@
-import { Build, ReviseBuild } from "./src";
+import { AdvancedOptions, Build, ReviseBuild } from "./src";
 import Prompt from "prompt-sync";
 import * as path from "path";
 import { Templates } from "./src/template";
@@ -26,14 +26,19 @@ async function main() {
 
     const PHOTO_COUNT = parseInt(ask("Photo scrape count (default 10): ")) || 10;
 
-    let template;
-    if(ask("Choose Template (y/n): ").toLowerCase()[0] == "y") {
+    const ADV_OPTIONS: AdvancedOptions = {
+        template: 'auto',
+        model: 'gpt-4o'
+    };
+    if(ask("Advanced settings (y/n): ").toLowerCase()[0] == "y") {
         console.log(fg + "Template names: " + reset + Object.keys(Templates).map(x => `\x1b]8;;https://html5up.net/uploads/demos/${x}/\x1b\\${x}\x1b]8;;\x1b\\`).join(', ') + reset);
-        template = ask("Choose your template: ").toLowerCase();
+        ADV_OPTIONS.template = ask("Choose your template (default auto): ").toLowerCase() as AdvancedOptions['template'] || ADV_OPTIONS.template;
+        console.log(fg + "OpenAI models: " + reset + "gpt-4o, gpt-4o-mini");
+        ADV_OPTIONS.model = ask("Choose model (default gpt-4o): ").toLowerCase() as AdvancedOptions['model'] || ADV_OPTIONS.model;
     }
     
     start = Date.now();
-    const build = await Build(CLIENT_INSTAGRAM_HANDLE, PHOTO_COUNT, template);
+    const build = await Build(CLIENT_INSTAGRAM_HANDLE, PHOTO_COUNT, ADV_OPTIONS);
     const url = `\x1b]8;;${path.resolve("build/index.html")}\x1b\\ /build/index.html \x1b]8;;\x1b\\`;
     console.log(`${fg}Website generated under ${reset}${url}${reset}`);
 

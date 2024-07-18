@@ -5,7 +5,12 @@ import { MessageChain } from './messagechain';
 import { TemplateBuilder, Templates } from './template';
 import { log, error } from '..';
 
-export async function Build(igHandle: string, photoCount: number, chosenTemplate?: string) {
+export type AdvancedOptions = {
+    model: 'gpt-4o' | 'gpt-4o-mini',
+    template: 'auto' | keyof typeof Templates,
+};
+
+export async function Build(igHandle: string, photoCount: number, advancedOptions: AdvancedOptions) {
     const igdata = await instagramScraper(igHandle) as Record<string, any>;
 
     const textPrompt = `I will give you the Instagram page for my client, @${igHandle}. Describe the purpose of this Instagram page, as well as the personality that this client might have, and the style and color scheme that would work best for them.\n<bio>${igdata.bio}</bio>\n<captions>\n${igdata.thumbnails.slice(0, photoCount).map((x: any) => x.alt).join('\n')}\n</captions>`;
@@ -24,18 +29,18 @@ export async function Build(igHandle: string, photoCount: number, chosenTemplate
 
     // Share pictures of template to model and find best suited site
     let siteName;
-    if(!chosenTemplate) {
+    if(advancedOptions.template == "auto") {
         log("Choosing template");
         const templateImages = MessageChain.ToImagesB64(Object.keys(Templates).map(x => `templates/${x}/${x}.png`), true);
         const templatePrompt = `I have ${Object.keys(Templates).length} website templates to choose from. Pick which website template would work the best with this Instagram page, and why you chose that specific template. Respond in JSON adhering to the following format <json>{ "templateName": ${Object.keys(Templates).map(x => `"${x}"`).join(" | ")}, "reasoning": string }</json>.`;
         await messageChain.addUserMessage(templatePrompt, ...templateImages);
         
-        const design = await messageChain.queryModel("gpt-4o", true);
+        const design = await messageChain.queryModel(advancedOptions.model, true);
         const designJSON = jsonParse(design);
         messageChain.chain.pop();
 
         siteName = designJSON["templateName"];
-    } else siteName = chosenTemplate;
+    } else siteName = advancedOptions.template;
 
     // Get code for specific design
     if(!(siteName in Templates)) error("Error occured with model template, please try again");

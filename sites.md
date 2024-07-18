@@ -5,14 +5,15 @@
 * funkymonkey         sent
 
 * _photosbylizzy sent
-
+* r.i.hannah sent
+* amerysslynn sen
+ 
 * fresheatzz
 * vintagedogsmaine
 * jeffsjamaicancuisine
 * kates.vt.media
-* r.i.hannah
+
 * emalees.photography
-* amerysslynn
 * humpstagram802
 * aliceyphotos
 * rivergem8
