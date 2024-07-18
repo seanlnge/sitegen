@@ -1503,7 +1503,7 @@ body{
 }
 #contact{
     overflow:hidden;
-    padding-bottom:0
+    padding-bottom:20px;
 }
 #contact .box{
     -moz-transition:-moz-transform 1s ease;

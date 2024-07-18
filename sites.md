@@ -4,11 +4,12 @@
 * cafe.vino.tino      rejected
 * funkymonkey         sent
 
+* _photosbylizzy sent
+
 * fresheatzz
 * vintagedogsmaine
 * jeffsjamaicancuisine
 * kates.vt.media
-* _photosbylizzy
 * r.i.hannah
 * emalees.photography
 * amerysslynn
