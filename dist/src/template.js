@@ -40,53 +40,12 @@ const fs = __importStar(require("fs"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const utils_1 = require("./utils");
 const __1 = require("..");
-const DIRECTIVE_COPYFILE_STRUCTURE = [
-    "assets/css/images/bottom-1280.svg",
-    "assets/css/images/bottom-1600.svg",
-    "assets/css/images/bottom-3200.svg",
-    "assets/css/images/overlay.png",
-    "assets/css/images/top-1280.svg",
-    "assets/css/images/top-1600.svg",
-    "assets/css/images/top-3200.svg",
-    "assets/js/main.js",
-    "assets/js/util.js",
-];
-const STRATA_COPYFILE_STRUCTURE = [
-    "assets/js/main.js",
-    "assets/js/util.js",
-    "assets/css/images/overlay.png"
-];
-const DIMENSION_COPYFILE_STRUCTURE = [
-    "assets/js/main.js",
-    "assets/js/util.js",
-    "images/overlay.png",
-];
-const SPECTRAL_COPYFILE_STRUCTURE = [
-    "assets/css/images/arrow.svg",
-    "assets/css/images/bars.svg",
-    "assets/css/images/close.svg",
-    "assets/js/main.js",
-    "assets/js/util.js",
-    "assets/js/jquery.scrollex.min.js",
-    "assets/js/jquery.scrolly.min.js"
-];
-const BIGPICTURE_COPYFILE_STRUCTURE = [
-    "assets/css/images/arrow.svg",
-    "assets/css/images/dark-arrow.svg",
-    "assets/css/images/overlay.png",
-    "assets/css/images/poptrox-closer.svg",
-    "assets/css/images/poptrox-nav.svg",
-    "assets/js/main.js",
-    "assets/js/util.js",
-    "assets/js/jquery.scrolly.min.js",
-    "assets/js/jquery.scrollex.min.js",
-];
 exports.Templates = {
-    "directive": DIRECTIVE_COPYFILE_STRUCTURE,
-    "strata": STRATA_COPYFILE_STRUCTURE,
-    "dimension": DIMENSION_COPYFILE_STRUCTURE,
-    "spectral": SPECTRAL_COPYFILE_STRUCTURE,
-    "big-picture": BIGPICTURE_COPYFILE_STRUCTURE,
+    "directive": JSON.parse(fs.readFileSync("templates/directive/sitegen.json").toString()),
+    "strata": JSON.parse(fs.readFileSync("templates/strata/sitegen.json").toString()),
+    "dimension": JSON.parse(fs.readFileSync("templates/dimension/sitegen.json").toString()),
+    "spectral": JSON.parse(fs.readFileSync("templates/spectral/sitegen.json").toString()),
+    "big-picture": JSON.parse(fs.readFileSync("templates/big-picture/sitegen.json").toString()),
 };
 class TemplateBuilder {
     constructor(template) {
@@ -128,7 +87,10 @@ class TemplateBuilder {
             this.entryPoints.set(entry, entries.get(entry));
         }
     }
-    build() {
+    build(buildOptions = {
+        blankMode: false,
+        buildFolder: 'build/'
+    }) {
         return __awaiter(this, void 0, void 0, function* () {
             let html = `<DOCTYPE! html>\n<html>\n${(0, utils_1.xmlParse)(this.html, "html")}\n</html>`;
             let css = this.css.split('*/').slice(1).join('*/');
@@ -148,7 +110,7 @@ class TemplateBuilder {
             yield fs.promises.cp("templates/global/css", "build/assets/css", { recursive: true });
             yield fs.promises.cp("templates/global/js", "build/assets/js", { recursive: true });
             // Move all files specific to the template
-            for (const FILE of exports.Templates[this.templateName]) {
+            for (const FILE of exports.Templates[this.templateName].structure) {
                 yield fs.promises.copyFile(`templates/${this.templateName}/${FILE}`, `build/${FILE}`);
             }
             // Add images to build/images folder
@@ -163,12 +125,20 @@ class TemplateBuilder {
             }
             // Alter HTML and CSS to include data entry
             for (const [entryName, entry] of this.entryPoints.entries()) {
+                if (buildOptions.blankMode && entryName.slice(-4) != "_SRC")
+                    continue;
                 while (html.indexOf(`$${entryName}$`) !== -1)
                     html = html.replace(`$${entryName}$`, entry);
                 while (css.indexOf(`$${entryName}$`) !== -1)
                     css = css.replace(`$${entryName}$`, entry);
             }
             css += "\n" + this.entryPoints.get("POTENTIAL_EXTRA_CSS");
+            // Use default root
+            if (buildOptions.blankMode) {
+                const startRootIndex = css.indexOf(":root");
+                const endRootIndex = startRootIndex + css.slice(startRootIndex).indexOf("}");
+                css = css.slice(0, startRootIndex) + exports.Templates[this.templateName].defaultRoot + css.slice(endRootIndex);
+            }
             // Finalize build
             yield fs.promises.writeFile("build/index.html", html);
             yield fs.promises.writeFile("build/assets/css/main.css", css);

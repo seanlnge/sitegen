@@ -29,41 +29,52 @@ export class MessageChain {
         if(this.saveLog) this.writeLog("Chain Created", this.chain);
     }
 
-    private async writeLog(title: string, data?: any) {
+    private writeLog(title: string, data?: any) {
         this.logText += "\n" + Date.now() + ": " + title;
         if(data) this.logText += " > " + JSON.stringify(data).slice(0, 10000);
-        if(this.saveLog) await fs.promises.writeFile(this.logPath, this.logText);
+        if(this.saveLog) fs.writeFileSync(this.logPath, this.logText);
     }
 
-    async addUserMessage(text: string, ...images:  ChatCompletionContentPartImage[]) {
+    addUserMessage(text: string, ...images:  ChatCompletionContentPartImage[]) {
         const content: ChatCompletionMessageParam["content"] = [{ type: "text", text }];
         if(images) content.push(...images);
 
         const toPush = { role: 'user', content } as ChatCompletionMessageParam;
         this.chain.push(toPush);
-        await this.writeLog("Push Message To Chain", toPush);
+        this.writeLog("Push Message To Chain", toPush);
     }
 
-    async addModelMessage(text: string) {
+    addModelMessage(text: string) {
         const toPush = { role: 'assistant', content: text } as ChatCompletionMessageParam;
         this.chain.push(toPush);
-        await this.writeLog("Push Message To Chain", toPush);
+        this.writeLog("Push Message To Chain", toPush);
     }
 
-    async addSystemMessage(text: string) {
+    addSystemMessage(text: string) {
         const toPush = { role: 'system', content: text } as ChatCompletionMessageParam;
         this.chain.push(toPush);
-        await this.writeLog("Push Message To Chain", toPush);
+        this.writeLog("Push Message To Chain", toPush);
     }
 
-    async getChain(start: number = 0, end: number = this.chain.length) {
+    getChain(start: number = 0, end: number = this.chain.length) {
         const retrieval = this.chain.slice(start, end);
-        await this.writeLog("Chain Retreived from Indices " + start + " to " + end);
+        this.writeLog("Chain Retreived from Indices " + start + " to " + end);
         return retrieval;
     }
 
+    popChain() {
+        const popped = this.chain.pop();
+        this.writeLog("Message Popped From Chain", popped);
+        return popped;
+    }
+
+    resetChain() {
+        this.writeLog("Chain emptied and reset");
+        this.chain = [];
+    }
+
     async promptImageGenerator(prompt: string): Promise<string> {
-        await this.writeLog("Image Generator Prompted", prompt);
+        this.writeLog("Image Generator Prompted", prompt);
 
         const img = await openai.images.generate({
             model: "dall-e-3",
@@ -73,13 +84,13 @@ export class MessageChain {
         });
         if(!img) throw new Error("image gen not work :(");
         
-        await this.writeLog("Image Generation Success", img.data[0].url);
+        this.writeLog("Image Generation Success", img.data[0].url);
         return img.data[0].url!;
     }
 
     async queryModel(model: string = 'gpt-4o', json: boolean = false, start: number = 0, end: number = this.chain.length): Promise<string> {
-        const messages = await this.getChain(start, end);
-        await this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
+        const messages = this.getChain(start, end);
+        this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
 
         const resp = (await openai.chat.completions.create({
             messages,
@@ -89,11 +100,11 @@ export class MessageChain {
             }
         }))?.choices[0]?.message?.content;
         if(!resp) {
-            await this.writeLog("Model '" + model + "' Query Failed on Chain Indices " + start + " to " + end);
+            this.writeLog("Model '" + model + "' Query Failed on Chain Indices " + start + " to " + end);
             throw new Error("Model query failed");
         }
 
-        await this.writeLog("Model '" + model + "' Query Success on Chain Indices " + start + " to " + end, resp);
+        this.writeLog("Model '" + model + "' Query Success on Chain Indices " + start + " to " + end, resp);
         return resp;
     }
 
@@ -127,28 +138,28 @@ export class MessageChain {
     }
 
     
-    async describeImage(image: ChatCompletionContentPartImage, prompt: string = "Describe this image"): Promise<string> {
-        this.writeLog("Model 'gpt-4o' Queried on Image Description Prompt: " + prompt, image);
+    async describeImage(image: ChatCompletionContentPartImage, prompt: string = "Describe this image", model: string = 'gpt-4o'): Promise<string> {
+        this.writeLog("Model '" + model  + "' Queried on Image Description Prompt: " + prompt, image);
 
         const resp = (await openai.chat.completions.create({
             messages: [{
                 role: 'user',
                 content: [{ type: "text", text: prompt }, image]
             }],
-            model: "gpt-4o"
+            model
         }))?.choices[0]?.message?.content;
 
         if(!resp) throw new Error('Model query failed');
 
-        await this.writeLog("Model 'gpt-4o' Query Success on Image Description", resp);
+        this.writeLog("Model '" + model + "' Query Success on Image Description", resp);
         return resp;
     }
 
-    async describeImages(images: ChatCompletionContentPartImage[], prompt: string = "Describe this image"): Promise<string[]> {
+    async describeImages(images: ChatCompletionContentPartImage[], prompt: string = "Describe this image", model: string = 'gpt-4o'): Promise<string[]> {
         const descriptions = await Promise.all(
             images.map(image => 
                 Promise.race([
-                    this.describeImage(image, prompt),
+                    this.describeImage(image, prompt, model),
                     sleep(15000)
                 ])
             )
@@ -157,11 +168,11 @@ export class MessageChain {
         return descriptions.filter(x => typeof x == 'string' ? true : false) as string[];
     }
 
-    async describeImagesAsync(images: ChatCompletionContentPartImage[], prompt: string = "Describe this image"): Promise<string[]> {
+    async describeImagesAsync(images: ChatCompletionContentPartImage[], prompt: string = "Describe this image", model: string = 'gpt-4o'): Promise<string[]> {
         const resp = [];
 
         for(let image of images) {
-            const desc = await this.describeImage(image, prompt);
+            const desc = await this.describeImage(image, prompt, model);
             if(!desc) continue;
             resp.push(desc);
         }

@@ -35,18 +35,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.photographSite = exports.instagramScraper = void 0;
+exports.photographSite = exports.facebookScraper = exports.instagramScraper = void 0;
 const puppeteer_1 = __importStar(require("puppeteer"));
 const sharp_1 = __importDefault(require("sharp"));
 const path_1 = __importDefault(require("path"));
 const __1 = require("..");
+const messagechain_1 = require("./messagechain");
 require('dotenv').config();
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 /**
  * Scrapes instagram
  * @returns string[]
  */
-function instagramScraper(handle) {
+function instagramScraper(handle, options) {
     return __awaiter(this, void 0, void 0, function* () {
         const browser = yield puppeteer_1.default.launch({ headless: true });
         const page = (yield browser.pages())[0];
@@ -73,11 +74,35 @@ function instagramScraper(handle) {
             };
         }, handle);
         yield browser.close();
-        return igdata;
+        return Object.assign(Object.assign({ handle }, igdata), { images: messagechain_1.MessageChain.ToImagesURL(igdata.thumbnails.slice(0, options.photoCount).map((x) => x.src)) });
     });
 }
 exports.instagramScraper = instagramScraper;
 ;
+function facebookScraper(handle) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const browser = yield puppeteer_1.default.launch({ headless: false });
+        const page = (yield browser.pages())[0];
+        (0, __1.log)('Opening facebook.com');
+        yield page.goto("https://www.facebook.com", { waitUntil: 'networkidle2' });
+        (0, __1.log)('Logging into account');
+        yield page.click('#email');
+        yield page.keyboard.type(process.env['FACEBOOK_EMAIL'], { delay: 50 });
+        yield page.click('#pass');
+        yield page.keyboard.type(process.env['FACEBOOK_PASS'], { delay: 50 });
+        yield page.click('button[name="login"]');
+        yield sleep(5000);
+        (0, __1.log)('Loading and scraping page for ' + handle);
+        yield page.goto('https://www.facebook.com/' + handle, { waitUntil: 'networkidle0' });
+        const fbdata = yield page.evaluate(() => {
+            const bio = document.querySelectorAll("div > ul")[1].parentElement.parentElement.parentElement.innerText;
+            return bio;
+        });
+        yield browser.close();
+        return fbdata;
+    });
+}
+exports.facebookScraper = facebookScraper;
 function photographSite(siteUrl) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
@@ -87,8 +112,10 @@ function photographSite(siteUrl) {
         yield page.goto(path_1.default.resolve(siteUrl));
         // Using { fullPage: true } is broken so set viewport to size of HTML body
         const boundingBox = (yield ((_a = (yield page.$('body'))) === null || _a === void 0 ? void 0 : _a.boundingBox()));
-        if (!boundingBox)
-            return (0, __1.error)("Error occured with build revision screenshot, continuing program", false);
+        if (!boundingBox) {
+            (0, __1.error)("Error occured with screenshot, please retry program", true);
+            process.exit(); // shouldn't get here since error ends program
+        }
         boundingBox.height = Math.floor(boundingBox.height);
         boundingBox.width = Math.floor(boundingBox.width);
         yield page.setViewport(boundingBox);
@@ -125,6 +152,7 @@ function photographSite(siteUrl) {
             left: width * i + 10 * (i - 1),
             top: 0
         })));
+        nimageBuffer.toFile('ss.jpeg');
         return nimageBuffer.toFormat('jpeg').toBuffer();
     });
 }

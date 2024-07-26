@@ -2,6 +2,8 @@ import puppeteer, { KnownDevices } from 'puppeteer';
 import sharp from 'sharp';
 import path from 'path';
 import { error, log } from '..';
+import { MessageChain } from './messagechain';
+import { Options } from '.';
 require('dotenv').config();
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -10,7 +12,7 @@ const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
  * Scrapes instagram
  * @returns string[]
  */
-export async function instagramScraper(handle: string) {
+export async function instagramScraper(handle: string, options: Options) {
     const browser = await puppeteer.launch({ headless: true });
     const page = (await browser.pages())[0];
 
@@ -43,8 +45,40 @@ export async function instagramScraper(handle: string) {
 
     await browser.close();
 
-    return igdata;
+    return {
+        handle,
+        ...igdata,
+        images: MessageChain.ToImagesURL(igdata.thumbnails.slice(0, options.photoCount).map((x: any) => x.src))
+    };
 };
+
+export async function facebookScraper(handle: string) {
+    const browser = await puppeteer.launch({ headless: false });
+    const page = (await browser.pages())[0];
+
+    log('Opening facebook.com');
+    await page.goto("https://www.facebook.com", { waitUntil: 'networkidle2' });
+    log('Logging into account');
+
+    await page.click('#email');
+    await page.keyboard.type(process.env['FACEBOOK_EMAIL']!, { delay: 50 });
+    await page.click('#pass');
+    await page.keyboard.type(process.env['FACEBOOK_PASS']!, { delay: 50 });
+    await page.click('button[name="login"]');
+    await sleep(5000);
+
+    log('Loading and scraping page for ' + handle);
+    await page.goto('https://www.facebook.com/' + handle, { waitUntil: 'networkidle0' });
+
+    const fbdata = await page.evaluate(() => {
+        const bio = document.querySelectorAll("div > ul")[1].parentElement!.parentElement!.parentElement!.innerText;
+        return bio;
+    });
+
+    await browser.close();
+
+    return fbdata;
+}
 
 export async function photographSite(siteUrl: string) {
     const browser = await puppeteer.launch({ headless: true, defaultViewport: null });
@@ -56,7 +90,10 @@ export async function photographSite(siteUrl: string) {
 
     // Using { fullPage: true } is broken so set viewport to size of HTML body
     const boundingBox = (await (await page.$('body'))?.boundingBox());
-    if(!boundingBox) return error("Error occured with build revision screenshot, continuing program", false);
+    if(!boundingBox) {
+        error("Error occured with screenshot, please retry program", true);
+        process.exit(); // shouldn't get here since error ends program
+    }
     boundingBox.height = Math.floor(boundingBox.height);
     boundingBox.width = Math.floor(boundingBox.width);
     await page.setViewport(boundingBox);
@@ -101,5 +138,6 @@ export async function photographSite(siteUrl: string) {
         top: 0
     })));
 
+    nimageBuffer.toFile('ss.jpeg');
     return nimageBuffer.toFormat('jpeg').toBuffer();
 }

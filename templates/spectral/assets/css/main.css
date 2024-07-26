@@ -6,15 +6,19 @@ The default colors for the site are
     --body-background: #2e3842;
     --body-text-color: #ffffff;
 
+    --banner-header-color: #ffffff;
+    --banner-text-color: #ffffff;
+
     --button-hover: #888888;
     --button-primary: #ed4731;
 
-    --style1-primary: #00ffcc;
-    --style2-primary: #00f0ff;
-    --style3-primary: #75ddff;
+    --icon-color: #00ffcc;
 
     --section1-background: #20b1a5;
+
     --section3-background: #505495;
+    --section3-text-color: #d3d4e4;
+    --section3-header-color: #ffffff;
 
 All entry points will be inside of dollar signs
 All entry points inside of this CSS file must be filled out
@@ -33,12 +37,16 @@ Potential extra CSS will be appended to the current CSS, so ensure that any extr
     --button-hover: $BUTTON_HOVER_COLOR$;
     --button-primary: $BUTTON_PRIMARY_COLOR$;
 
-    --style1-primary: $STYLE1_PRIMARY_COLOR$;
-    --style2-primary: $STYLE2_PRIMARY_COLOR$;
-    --style3-primary: $STYLE3_PRIMARY_COLOR$;
+    --banner-text-color: $BANNER_TEXT_COLOR$;
+    --banner-header-color: $BANNER_HEADER_COLOR$;
+
+    --icon-color: $ICON_COLOR$;
 
     --section1-background: $SECTION_1_BACKGROUND_COLOR$;
+
     --section3-background: $SECTION_3_BACKGROUND_COLOR$;
+    --section3-text-color: $SECTION_3_TEXT_COLOR$;
+    --section3-header-color: $SECTION_3_HEADER_COLOR$;
 }
 
 a,b,body,div,footer,h1,h2,h3,h4,h5,h6,header,html,img,label,li,menu,nav,p,s,section,span,ul{
@@ -282,15 +290,6 @@ label{
     .icon.major{
         font-size:1em
     }
-}
-.icon.style1{
-    color:var(--style1-primary)
-}
-.icon.style2{
-    color:var(--style2-primary)
-}
-.icon.style3{
-    color:var(--style3-primary)
 }
 .image{
     border-radius:3px;
@@ -780,13 +779,13 @@ ul.icons.major li{
 }
 .wrapper.style3{
     background-color:var(--section3-background);
-    color:color-mix(in srgb, var(--section3-background) 75%, var(--body-text-color))
+    color:var(--section3-text-color);
 }
 .wrapper.style3 b{
     color:var(--body-text-color)
 }
 .wrapper.style3 h2,.wrapper.style3 h3,.wrapper.style3 h4,.wrapper.style3 h5,.wrapper.style3 h6{
-    color:var(--body-text-color)
+    color:var(--section3-header-color)
 }
 .wrapper.style3 header p{
     color:color-mix(in srgb, var(--section3-background) 60%, var(--body-text-color))
@@ -795,7 +794,7 @@ ul.icons.major li{
     border-color:rgba(0,0,0,.125)
 }
 .wrapper.style3 header.major p{
-    color:color-mix(in srgb, var(--section3-background) 75%, var(--body-text-color))
+    color:var(--section3-text-color)
 }
 .wrapper.style3 label{
     color:var(--body-text-color)
@@ -1057,7 +1056,8 @@ ul.icons.major li{
     min-height:35em;
     overflow:hidden;
     position:relative;
-    text-align:center
+    text-align:center;
+    color: var(--banner-text-color);
 }
 #banner h2{
     -moz-transform:scale(1);
@@ -1073,7 +1073,8 @@ ul.icons.major li{
     opacity:1;
     padding:.35em 1em;
     position:relative;
-    z-index:1
+    z-index:1;
+    color: var(--banner-header-color);
 }
 #banner h2:after,#banner h2:before{
     -moz-transition:width .85s ease;

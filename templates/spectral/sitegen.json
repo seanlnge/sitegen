@@ -1,0 +1,12 @@
+{
+    "structure": [
+        "assets/css/images/arrow.svg",
+        "assets/css/images/bars.svg",
+        "assets/css/images/close.svg",
+        "assets/js/main.js",
+        "assets/js/util.js",
+        "assets/js/jquery.scrollex.min.js",
+        "assets/js/jquery.scrolly.min.js"  
+    ],
+    "defaultRoot": ":root {\n--body-background: #2e3842;\n--body-text-color: #ffffff;\n--banner-header-color: #ffffff;\n--banner-text-color: #ffffff;\n--button-hover: #888888;\n--button-primary: #ed4731;\n--icon-color: #00ffcc;\n--section1-background: #20b1a5;\n--section3-background: #505495;\n--section3-text-color: #d3d4e4;\n--section3-header-color: #ffffff;}"
+}

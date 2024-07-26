@@ -6,7 +6,8 @@
 
 * _photosbylizzy sent
 * r.i.hannah sent
-* amerysslynn sen
+* amerysslynn sent
+* j.l.escape sent
  
 * fresheatzz
 * vintagedogsmaine
@@ -17,4 +18,3 @@
 * humpstagram802
 * aliceyphotos
 * rivergem8
-* j.l.escape

@@ -19,9 +19,9 @@ Potential extra CSS will be appended to the current CSS, so ensure that any extr
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300italic,600italic,300,600");
 
 :root {
-    --body-background: #1b1f22;
-    --main-text-color: #ffffff;
-    --border-color: #ffffff;
+    --body-background: $BODY_BACKGROUND$;
+    --main-text-color: $MAIN_TEXT_COLOR$;
+    --border-color: $BORDER_COLOR$;
 }
 
 

@@ -53,48 +53,47 @@ class MessageChain {
             this.writeLog("Chain Created", this.chain);
     }
     writeLog(title, data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.logText += "\n" + Date.now() + ": " + title;
-            if (data)
-                this.logText += " > " + JSON.stringify(data).slice(0, 10000);
-            if (this.saveLog)
-                yield fs.promises.writeFile(this.logPath, this.logText);
-        });
+        this.logText += "\n" + Date.now() + ": " + title;
+        if (data)
+            this.logText += " > " + JSON.stringify(data).slice(0, 10000);
+        if (this.saveLog)
+            fs.writeFileSync(this.logPath, this.logText);
     }
     addUserMessage(text, ...images) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const content = [{ type: "text", text }];
-            if (images)
-                content.push(...images);
-            const toPush = { role: 'user', content };
-            this.chain.push(toPush);
-            yield this.writeLog("Push Message To Chain", toPush);
-        });
+        const content = [{ type: "text", text }];
+        if (images)
+            content.push(...images);
+        const toPush = { role: 'user', content };
+        this.chain.push(toPush);
+        this.writeLog("Push Message To Chain", toPush);
     }
     addModelMessage(text) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const toPush = { role: 'assistant', content: text };
-            this.chain.push(toPush);
-            yield this.writeLog("Push Message To Chain", toPush);
-        });
+        const toPush = { role: 'assistant', content: text };
+        this.chain.push(toPush);
+        this.writeLog("Push Message To Chain", toPush);
     }
     addSystemMessage(text) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const toPush = { role: 'system', content: text };
-            this.chain.push(toPush);
-            yield this.writeLog("Push Message To Chain", toPush);
-        });
+        const toPush = { role: 'system', content: text };
+        this.chain.push(toPush);
+        this.writeLog("Push Message To Chain", toPush);
     }
     getChain(start = 0, end = this.chain.length) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const retrieval = this.chain.slice(start, end);
-            yield this.writeLog("Chain Retreived from Indices " + start + " to " + end);
-            return retrieval;
-        });
+        const retrieval = this.chain.slice(start, end);
+        this.writeLog("Chain Retreived from Indices " + start + " to " + end);
+        return retrieval;
+    }
+    popChain() {
+        const popped = this.chain.pop();
+        this.writeLog("Message Popped From Chain", popped);
+        return popped;
+    }
+    resetChain() {
+        this.writeLog("Chain emptied and reset");
+        this.chain = [];
     }
     promptImageGenerator(prompt) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.writeLog("Image Generator Prompted", prompt);
+            this.writeLog("Image Generator Prompted", prompt);
             const img = yield openai.images.generate({
                 model: "dall-e-3",
                 prompt,
@@ -103,15 +102,15 @@ class MessageChain {
             });
             if (!img)
                 throw new Error("image gen not work :(");
-            yield this.writeLog("Image Generation Success", img.data[0].url);
+            this.writeLog("Image Generation Success", img.data[0].url);
             return img.data[0].url;
         });
     }
     queryModel(model = 'gpt-4o', json = false, start = 0, end = this.chain.length) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            const messages = yield this.getChain(start, end);
-            yield this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
+            const messages = this.getChain(start, end);
+            this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
             const resp = (_c = (_b = (_a = (yield openai.chat.completions.create({
                 messages,
                 model,
@@ -120,10 +119,10 @@ class MessageChain {
                 }
             }))) === null || _a === void 0 ? void 0 : _a.choices[0]) === null || _b === void 0 ? void 0 : _b.message) === null || _c === void 0 ? void 0 : _c.content;
             if (!resp) {
-                yield this.writeLog("Model '" + model + "' Query Failed on Chain Indices " + start + " to " + end);
+                this.writeLog("Model '" + model + "' Query Failed on Chain Indices " + start + " to " + end);
                 throw new Error("Model query failed");
             }
-            yield this.writeLog("Model '" + model + "' Query Success on Chain Indices " + start + " to " + end, resp);
+            this.writeLog("Model '" + model + "' Query Success on Chain Indices " + start + " to " + end, resp);
             return resp;
         });
     }
@@ -150,37 +149,37 @@ class MessageChain {
     static ToImagesB64(urls, lowResolution) {
         return urls.map(url => this.ToImageB64(url, lowResolution));
     }
-    describeImage(image, prompt = "Describe this image") {
+    describeImage(image, prompt = "Describe this image", model = 'gpt-4o') {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            this.writeLog("Model 'gpt-4o' Queried on Image Description Prompt: " + prompt, image);
+            this.writeLog("Model '" + model + "' Queried on Image Description Prompt: " + prompt, image);
             const resp = (_c = (_b = (_a = (yield openai.chat.completions.create({
                 messages: [{
                         role: 'user',
                         content: [{ type: "text", text: prompt }, image]
                     }],
-                model: "gpt-4o"
+                model
             }))) === null || _a === void 0 ? void 0 : _a.choices[0]) === null || _b === void 0 ? void 0 : _b.message) === null || _c === void 0 ? void 0 : _c.content;
             if (!resp)
                 throw new Error('Model query failed');
-            yield this.writeLog("Model 'gpt-4o' Query Success on Image Description", resp);
+            this.writeLog("Model '" + model + "' Query Success on Image Description", resp);
             return resp;
         });
     }
-    describeImages(images, prompt = "Describe this image") {
+    describeImages(images, prompt = "Describe this image", model = 'gpt-4o') {
         return __awaiter(this, void 0, void 0, function* () {
             const descriptions = yield Promise.all(images.map(image => Promise.race([
-                this.describeImage(image, prompt),
+                this.describeImage(image, prompt, model),
                 (0, utils_1.sleep)(15000)
             ])));
             return descriptions.filter(x => typeof x == 'string' ? true : false);
         });
     }
-    describeImagesAsync(images, prompt = "Describe this image") {
+    describeImagesAsync(images, prompt = "Describe this image", model = 'gpt-4o') {
         return __awaiter(this, void 0, void 0, function* () {
             const resp = [];
             for (let image of images) {
-                const desc = yield this.describeImage(image, prompt);
+                const desc = yield this.describeImage(image, prompt, model);
                 if (!desc)
                     continue;
                 resp.push(desc);

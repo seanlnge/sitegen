@@ -1,0 +1,8 @@
+{
+    "structure": [
+        "assets/js/main.js",
+        "assets/js/util.js",
+        "assets/css/images/overlay.png"
+    ],
+    "defaultRoot": ":root {\n--body-background: #ffffff;\n--main-text-color: #5b5b5b;\n--header-text-color: #ffffff;\n--primary-accent: #4eb980;\n--secondary-accent: #544d55;\n}"
+}

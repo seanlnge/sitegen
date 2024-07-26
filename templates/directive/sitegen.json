@@ -1,0 +1,14 @@
+{
+    "structure": [
+        "assets/css/images/bottom-1280.svg",
+        "assets/css/images/bottom-1600.svg",
+        "assets/css/images/bottom-3200.svg",
+        "assets/css/images/overlay.png",
+        "assets/css/images/top-1280.svg",
+        "assets/css/images/top-1600.svg",
+        "assets/css/images/top-3200.svg",
+        "assets/js/main.js",
+        "assets/js/util.js"
+    ],
+    "defaultRoot": ":root {\n--body-background: #ffffff;\n--main-text-color: #5b5b5b;\n--header-text-color: #ffffff;\n--primary-accent: #4eb980;\n--secondary-accent: #544d55;\n}"
+}

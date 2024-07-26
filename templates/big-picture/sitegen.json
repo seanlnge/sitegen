@@ -1,0 +1,14 @@
+{
+    "structure": [
+        "assets/css/images/arrow.svg",
+        "assets/css/images/dark-arrow.svg",
+        "assets/css/images/overlay.png",
+        "assets/css/images/poptrox-closer.svg",
+        "assets/css/images/poptrox-nav.svg",
+        "assets/js/main.js",
+        "assets/js/util.js",
+        "assets/js/jquery.scrolly.min.js",
+        "assets/js/jquery.scrollex.min.js"
+    ],
+    "defaultRoot": ":root {\n--body-background-color: #ffffff;\n--body-text-color: #39454b;\n--button-text-color: #ffffff;\n--button-style1-color: #98c593;\n--button-style2-color: #e5e6e7;\n--input-border-color: #e5e6e7;\n--input-border-color-focused: #9ac8e9;\n--main-primary: #ffffff;\n--main-secondary: #f5f6f7;\n--footer-text-color: #b9babb;\n--footer-background: #39454b;\n}"
+}
