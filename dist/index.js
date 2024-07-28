@@ -81,11 +81,14 @@ const ask = (m, after = "") => prompt(fg + m + reset + after);
  * Literally runs program
  */
 function main() {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         console.log(bg + " ---=--== SiteGEN ==--=--- " + reset);
-        const CLIENT_INSTAGRAM_HANDLE = ask("Instagram handle: ", "@");
-        if (!CLIENT_INSTAGRAM_HANDLE)
-            return (0, exports.error)("Please enter Instagram handle");
+        const HANDLES = {};
+        nl();
+        console.log(fg + "To skip a handle, click Enter" + reset);
+        HANDLES.instagram = (_a = ask("Instagram handle: ", "@")) !== null && _a !== void 0 ? _a : undefined;
+        HANDLES.facebook = (_b = ask("Facebook handle: ")) !== null && _b !== void 0 ? _b : undefined;
         const OPTIONS = {
             template: undefined,
             photoCount: 10,
@@ -128,7 +131,7 @@ function main() {
         }
         nl();
         start = Date.now();
-        const build = yield (0, src_1.Build)(CLIENT_INSTAGRAM_HANDLE, OPTIONS);
+        const build = yield (0, src_1.Build)(HANDLES, OPTIONS);
         nl();
         const url = `\x1b]8;;${path.resolve("build/index.html")}\x1b\\ /build/index.html \x1b]8;;\x1b\\`;
         console.log(`${fg}Website generated under ${reset}${url}${reset}`);

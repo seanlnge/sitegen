@@ -40,7 +40,6 @@ const puppeteer_1 = __importStar(require("puppeteer"));
 const sharp_1 = __importDefault(require("sharp"));
 const path_1 = __importDefault(require("path"));
 const __1 = require("..");
-const messagechain_1 = require("./messagechain");
 require('dotenv').config();
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 /**
@@ -65,21 +64,25 @@ function instagramScraper(handle, options) {
             var _a, _b;
             const images = Array.from(document.querySelectorAll('img'));
             const ppurl = (_a = document.querySelector(`img[alt="${handle}'s profile picture"]`)) === null || _a === void 0 ? void 0 : _a.src;
-            const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
+            const scrapedImages = images.filter(x => x.classList.length == 6).map(x => ({ caption: x.alt, source: x.src }));
             const bioElement = document.querySelector('section > div > span > div > span');
             return {
                 profilePicture: ppurl,
                 bio: bioElement ? (_b = bioElement.textContent) !== null && _b !== void 0 ? _b : "" : "",
-                thumbnails,
+                images: scrapedImages,
             };
         }, handle);
         yield browser.close();
-        return Object.assign(Object.assign({ handle }, igdata), { images: messagechain_1.MessageChain.ToImagesURL(igdata.thumbnails.slice(0, options.photoCount).map((x) => x.src)) });
+        return {
+            bio: igdata.bio,
+            images: igdata.images.slice(0, options.photoCount),
+            profilePicture: igdata.profilePicture
+        };
     });
 }
 exports.instagramScraper = instagramScraper;
 ;
-function facebookScraper(handle) {
+function facebookScraper(handle, options) {
     return __awaiter(this, void 0, void 0, function* () {
         const browser = yield puppeteer_1.default.launch({ headless: false });
         const page = (yield browser.pages())[0];
@@ -96,7 +99,7 @@ function facebookScraper(handle) {
         yield page.goto('https://www.facebook.com/' + handle, { waitUntil: 'networkidle0' });
         const fbdata = yield page.evaluate(() => {
             const bio = document.querySelectorAll("div > ul")[1].parentElement.parentElement.parentElement.innerText;
-            return bio;
+            return { bio, images: [] };
         });
         yield browser.close();
         return fbdata;

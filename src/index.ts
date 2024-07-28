@@ -1,9 +1,22 @@
 require('dotenv').config();
-import { instagramScraper, photographSite } from './scraper';
+import { facebookScraper, instagramScraper, photographSite, ScrapedImage } from './scraper';
 import { jsonParse } from './utils';
 import { MessageChain } from './messagechain';
 import { TemplateBuilder, Templates } from './template';
 import { log, error } from '..';
+
+export type Handles = {
+    instagram?: string;
+    facebook?: string;
+}
+
+const ScraperMap = {
+    instagram: instagramScraper,
+    facebook: facebookScraper,
+};
+
+type U<T extends keyof typeof ScraperMap> = Partial<Record<T, Awaited<ReturnType<typeof ScraperMap[T]>>>>; // trust trust
+type SocialMediaData = U<keyof Handles>; // { social media site name: return type of scraper of said social media }
 
 export type Options = {
     model: 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4-turbo',
@@ -22,14 +35,22 @@ export type Options = {
  */
 async function parseClient(
     messageChain: MessageChain,
-    igdata: Record<string, any>,
+    socialMediaData: SocialMediaData,
+    images: ScrapedImage[],
     options: Options
 ): Promise<string> {
     log("Collecting and parsing client information");
+    const imgObjs = MessageChain.ToImagesURL(images.slice(0, options.photoCount).map(x => x.source));
+
+    const socials = Object.keys(socialMediaData).map(name => {
+        const data = socialMediaData[name as keyof Handles]!;
+        const captions = data.images.map(x => x.caption);
+        return `<${name}>\n<bio>\n${data.bio}\n</bio>\n<captions>\n${captions.join('\n')}\n</captions>\n</${name}>`;
+    });
 
     messageChain.addUserMessage(
-        `I will give you the Instagram page for my client, @${igdata.handle}. Turn this Instagram page into a JSON object describing this client. Follow all of the rules.\n<rules>Add as much data as you can find into this JSON object. For specific data such as location, contact information, or instagram username, add information into it's own field. Add information about this page's style.</rules>\n<example>\n\`{ "instagram": "@_potterylovers", "address": "201 Main St, Farmington, Maine, 19382", "purpose": "Business that sells pottery lessons", "number": "302-404-1111", "style": "Artisinal and personable", "extraInfo": "Very polished page ran very professionally. The pictures utilize very earthy colors, and include studio shots along with pictures with in-home settings, ..." }\`\n</example> \n<bio>${igdata.bio}</bio>\n<captions>\n${igdata.thumbnails.slice(0, options.photoCount).map((x: any) => x.alt).join('\n')}\n</captions>`,
-        ...igdata.images
+        `I will give you the social media data for my client. Turn this information into a JSON object describing this client. Follow all of the rules.\n<rules>Add as much data as you can find into this JSON object. For specific data such as location, contact information, or instagram username, add information into it's own field. Add information about this page's style.</rules>\n<example>\n\`{ "instagram": "@_potterylovers", "address": "201 Main St, Farmington, Maine, 19382", "purpose": "Business that sells pottery lessons", "number": "302-404-1111", "style": "Artisinal and personable", "extraInfo": "Very polished page ran very professionally. The pictures utilize very earthy colors, and include studio shots along with pictures with in-home settings, ..." }\`\n</example> \n<socials>${socials.join('\n')}</socials>`,
+        ...imgObjs
     );
 
     // Get prefered design for website
@@ -75,14 +96,16 @@ async function chooseTemplate(
  */
 async function placeImages(
     messageChain: MessageChain,
-    igdata: Awaited<ReturnType<typeof instagramScraper>>,
+    images: ScrapedImage[],
+    profilePicture: string,
     siteName: keyof typeof Templates,
     options: Options
 ) {
     log("Describing images");
+    const imgObjs = MessageChain.ToImagesURL(images.slice(0, options.photoCount).map(x => x.source));
 
     const imgdesc = await messageChain.describeImages(
-        igdata.images,
+        imgObjs,
         "Describe this image in a paragraph, including the color scheme, the main item present in this image, the overall feeling that this image presents, as well as where on a website that this image might make sense.",
         options.model
     );
@@ -90,7 +113,7 @@ async function placeImages(
     const imageDescriptions = imgdesc.map((x, i) => ({
         description: x,
         url: `image${i}.jpg`,
-        caption: igdata.thumbnails[i].alt
+        caption: images[i].caption
     }));
 
     log("Placing images on template");
@@ -101,7 +124,7 @@ async function placeImages(
 
     // Match image placeholders with Instagram image
     const fillJSON = jsonParse(fill);
-    imageDescriptions.forEach((x: any, i) => x["source"] = igdata.images[i].image_url.url);
+    imageDescriptions.forEach((x: any, i) => x["source"] = imgObjs[i].image_url.url);
 
     const imageTags: { [key: string]: string } = {};
     for(const url in fillJSON) {
@@ -117,7 +140,7 @@ async function placeImages(
         imageTags[url] = await messageChain.promptImageGenerator(bestFit);
     }
 
-    imageTags["IMAGE_Z"] = igdata.profilePicture;
+    imageTags["IMAGE_Z"] = profilePicture;
     return imageTags;
 }
 
@@ -200,13 +223,26 @@ export async function ReviseBuild(messageChain: MessageChain, template: Template
     return messageChain;
 }
 
-export async function Build(igHandle: string, options: Options) {
+export async function Build(handles: Handles, options: Options) {
     const messageChain = new MessageChain({ saveLog: true, logPath: 'log.txt' });
 
-    const igdata = await instagramScraper(igHandle, options);
-    const client = await parseClient(messageChain, igdata, options)
+    // Scrape all sites
+    const socialMediaData: SocialMediaData = {};
+    const images: ScrapedImage[] = [];
+    let profilePicture = '';
+
+    await Promise.all(Object.keys(handles).map(async key => {
+        const socialMedia = key as keyof Handles;
+        const data = await ScraperMap[socialMedia](handles[socialMedia]!, options);
+        socialMediaData[socialMedia] = data;
+
+        images.push(...data.images);
+        if(!profilePicture && "profilePicture" in data) profilePicture = data.profilePicture;
+    }));
+    
+    const client = await parseClient(messageChain, socialMediaData, images, options);
     const template = await chooseTemplate(messageChain, options);
-    template.setImages(await placeImages(messageChain, igdata, template.templateName, options));
+    template.setImages(await placeImages(messageChain, images, profilePicture, template.templateName, options));
     await buildSite(messageChain, client, template, options);
     
     if(options.autoRevise) {

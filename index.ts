@@ -1,4 +1,4 @@
-import { Build, Options, ReviseBuild } from "./src";
+import { Build, Handles, Options, ReviseBuild } from "./src";
 import Prompt from "prompt-sync";
 import * as path from "path";
 import { Templates } from "./src/template";
@@ -50,8 +50,12 @@ const ask = (m: string, after: string = "") => prompt(fg + m + reset + after);
 async function main() {
     console.log(bg + " ---=--== SiteGEN ==--=--- " + reset);
 
-    const CLIENT_INSTAGRAM_HANDLE = ask("Instagram handle: ", "@");
-    if(!CLIENT_INSTAGRAM_HANDLE) return error("Please enter Instagram handle");
+    const HANDLES: Handles = {};
+
+    nl();
+    console.log(fg + "To skip a handle, click Enter" + reset);
+    HANDLES.instagram = ask("Instagram handle: ", "@") ?? undefined;
+    HANDLES.facebook = ask("Facebook handle: ") ?? undefined;
 
     const OPTIONS: Options = {
         template: undefined,
@@ -97,7 +101,7 @@ async function main() {
 
     nl();
     start = Date.now();
-    const build = await Build(CLIENT_INSTAGRAM_HANDLE, OPTIONS);
+    const build = await Build(HANDLES, OPTIONS);
     nl();
     const url = `\x1b]8;;${path.resolve("build/index.html")}\x1b\\ /build/index.html \x1b]8;;\x1b\\`;
     console.log(`${fg}Website generated under ${reset}${url}${reset}`);

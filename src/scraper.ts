@@ -2,11 +2,15 @@ import puppeteer, { KnownDevices } from 'puppeteer';
 import sharp from 'sharp';
 import path from 'path';
 import { error, log } from '..';
-import { MessageChain } from './messagechain';
 import { Options } from '.';
 require('dotenv').config();
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+export type ScrapedImage = {
+    source: string,
+    caption: string,
+};
 
 /**
  * Scrapes instagram
@@ -33,27 +37,27 @@ export async function instagramScraper(handle: string, options: Options) {
     const igdata = await page.evaluate((handle) => {
         const images = Array.from(document.querySelectorAll('img'));
         const ppurl = (document.querySelector(`img[alt="${handle}'s profile picture"]`) as HTMLImageElement)?.src;
-        const thumbnails = images.filter(x => x.classList.length == 6).map(x => ({ alt: x.alt, src: x.src }));
+        const scrapedImages = images.filter(x => x.classList.length == 6).map(x => ({ caption: x.alt, source: x.src }));
         const bioElement = document.querySelector('section > div > span > div > span');
         
         return {
             profilePicture: ppurl,
             bio: bioElement ? bioElement.textContent ?? "" : "",
-            thumbnails,
+            images: scrapedImages as ScrapedImage[],
         }
     }, handle);
 
     await browser.close();
 
     return {
-        handle,
-        ...igdata,
-        images: MessageChain.ToImagesURL(igdata.thumbnails.slice(0, options.photoCount).map((x: any) => x.src))
+        bio: igdata.bio,
+        images: igdata.images.slice(0, options.photoCount),
+        profilePicture: igdata.profilePicture
     };
 };
 
-export async function facebookScraper(handle: string) {
-    const browser = await puppeteer.launch({ headless: false });
+export async function facebookScraper(handle: string, options: Options) {
+    const browser = await puppeteer.launch({ headless: true });
     const page = (await browser.pages())[0];
 
     log('Opening facebook.com');
@@ -72,7 +76,7 @@ export async function facebookScraper(handle: string) {
 
     const fbdata = await page.evaluate(() => {
         const bio = document.querySelectorAll("div > ul")[1].parentElement!.parentElement!.parentElement!.innerText;
-        return bio;
+        return { bio, images: [] };
     });
 
     await browser.close();

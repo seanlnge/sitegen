@@ -16,6 +16,10 @@ const utils_1 = require("./utils");
 const messagechain_1 = require("./messagechain");
 const template_1 = require("./template");
 const __1 = require("..");
+const ScraperMap = {
+    instagram: scraper_1.instagramScraper,
+    facebook: scraper_1.facebookScraper,
+};
 /**
  * Collection and parse all client information
  * @param messageChain Chain of messages being sent
@@ -23,10 +27,16 @@ const __1 = require("..");
  * @param options SiteGEN options
  * @returns All information about client parsed into JSON string
  */
-function parseClient(messageChain, igdata, options) {
+function parseClient(messageChain, socialMediaData, images, options) {
     return __awaiter(this, void 0, void 0, function* () {
         (0, __1.log)("Collecting and parsing client information");
-        messageChain.addUserMessage(`I will give you the Instagram page for my client, @${igdata.handle}. Turn this Instagram page into a JSON object describing this client. Follow all of the rules.\n<rules>Add as much data as you can find into this JSON object. For specific data such as location, contact information, or instagram username, add information into it's own field. Add information about this page's style.</rules>\n<example>\n\`{ "instagram": "@_potterylovers", "address": "201 Main St, Farmington, Maine, 19382", "purpose": "Business that sells pottery lessons", "number": "302-404-1111", "style": "Artisinal and personable", "extraInfo": "Very polished page ran very professionally. The pictures utilize very earthy colors, and include studio shots along with pictures with in-home settings, ..." }\`\n</example> \n<bio>${igdata.bio}</bio>\n<captions>\n${igdata.thumbnails.slice(0, options.photoCount).map((x) => x.alt).join('\n')}\n</captions>`, ...igdata.images);
+        const imgObjs = messagechain_1.MessageChain.ToImagesURL(images.slice(0, options.photoCount).map(x => x.source));
+        const socials = Object.keys(socialMediaData).map(name => {
+            const data = socialMediaData[name];
+            const captions = data.images.map(x => x.caption);
+            return `<${name}>\n<bio>\n${data.bio}\n</bio>\n<captions>\n${captions.join('\n')}\n</captions>\n</${name}>`;
+        });
+        messageChain.addUserMessage(`I will give you the social media data for my client. Turn this information into a JSON object describing this client. Follow all of the rules.\n<rules>Add as much data as you can find into this JSON object. For specific data such as location, contact information, or instagram username, add information into it's own field. Add information about this page's style.</rules>\n<example>\n\`{ "instagram": "@_potterylovers", "address": "201 Main St, Farmington, Maine, 19382", "purpose": "Business that sells pottery lessons", "number": "302-404-1111", "style": "Artisinal and personable", "extraInfo": "Very polished page ran very professionally. The pictures utilize very earthy colors, and include studio shots along with pictures with in-home settings, ..." }\`\n</example> \n<socials>${socials.join('\n')}</socials>`, ...imgObjs);
         // Get prefered design for website
         const client = yield messageChain.queryModel('gpt-4o', true);
         messageChain.popChain();
@@ -65,14 +75,15 @@ function chooseTemplate(messageChain, options) {
  * @param options SiteGEN options
  * @returns Image mapping between entry point and image source
  */
-function placeImages(messageChain, igdata, siteName, options) {
+function placeImages(messageChain, images, profilePicture, siteName, options) {
     return __awaiter(this, void 0, void 0, function* () {
         (0, __1.log)("Describing images");
-        const imgdesc = yield messageChain.describeImages(igdata.images, "Describe this image in a paragraph, including the color scheme, the main item present in this image, the overall feeling that this image presents, as well as where on a website that this image might make sense.", options.model);
+        const imgObjs = messagechain_1.MessageChain.ToImagesURL(images.slice(0, options.photoCount).map(x => x.source));
+        const imgdesc = yield messageChain.describeImages(imgObjs, "Describe this image in a paragraph, including the color scheme, the main item present in this image, the overall feeling that this image presents, as well as where on a website that this image might make sense.", options.model);
         const imageDescriptions = imgdesc.map((x, i) => ({
             description: x,
             url: `image${i}.jpg`,
-            caption: igdata.thumbnails[i].alt
+            caption: images[i].caption
         }));
         (0, __1.log)("Placing images on template");
         const imageFillPrompt = `I will give you a picture of the template that I will use to make this client's website, which displays a few spots to place images in, and what these spots are named. I will also give you a list of this client's instagram thumbnails and their caption. Firstly, decide what type of image should go into each image spot. Then, choose which images should go into which spots to make the best website for the client. Use the reasoning section to explain your reasoning behind where each image should go. If no image fits into the spot, return a description of what type of image would fit instead. Follow the rules exactly. <rules>\nDo not alter the url of any images at all. Respond in JSON adhering to the following format\n\`\`\`\nReasoning before you choose which images go where\n{ "IMAGE_A": string, , ... }\n\`\`\`\nYou are forbidden from adding any comments inside the JSON. Do not add any comments inside the JSON string. All reasoning should be done in the reasoning section. \n</rules>\n<example>IMAGE_A should be a attention grabbing header that ... while IMAGE_B should be a delicious meal that ...\n{ "IMAGE_A": "image3.jpg", "IMAGE_B": "picture of a palm tree in front of a beach", "IMAGE_C": "image2.jpg" }</example>\nHere are the images: ${JSON.stringify(imageDescriptions)}`;
@@ -81,7 +92,7 @@ function placeImages(messageChain, igdata, siteName, options) {
         messageChain.addModelMessage(fill);
         // Match image placeholders with Instagram image
         const fillJSON = (0, utils_1.jsonParse)(fill);
-        imageDescriptions.forEach((x, i) => x["source"] = igdata.images[i].image_url.url);
+        imageDescriptions.forEach((x, i) => x["source"] = imgObjs[i].image_url.url);
         const imageTags = {};
         for (const url in fillJSON) {
             const bestFit = fillJSON[url];
@@ -94,7 +105,7 @@ function placeImages(messageChain, igdata, siteName, options) {
             (0, __1.log)("Prompting image generation");
             imageTags[url] = yield messageChain.promptImageGenerator(bestFit);
         }
-        imageTags["IMAGE_Z"] = igdata.profilePicture;
+        imageTags["IMAGE_Z"] = profilePicture;
         return imageTags;
     });
 }
@@ -166,13 +177,24 @@ function ReviseBuild(messageChain, template, revisionMessage, options) {
     });
 }
 exports.ReviseBuild = ReviseBuild;
-function Build(igHandle, options) {
+function Build(handles, options) {
     return __awaiter(this, void 0, void 0, function* () {
         const messageChain = new messagechain_1.MessageChain({ saveLog: true, logPath: 'log.txt' });
-        const igdata = yield (0, scraper_1.instagramScraper)(igHandle, options);
-        const client = yield parseClient(messageChain, igdata, options);
+        // Scrape all sites
+        const socialMediaData = {};
+        const images = [];
+        let profilePicture = '';
+        yield Promise.all(Object.keys(handles).map((key) => __awaiter(this, void 0, void 0, function* () {
+            const socialMedia = key;
+            const data = yield ScraperMap[socialMedia](handles[socialMedia], options);
+            socialMediaData[socialMedia] = data;
+            images.push(...data.images);
+            if (!profilePicture && "profilePicture" in data)
+                profilePicture = data.profilePicture;
+        })));
+        const client = yield parseClient(messageChain, socialMediaData, images, options);
         const template = yield chooseTemplate(messageChain, options);
-        template.setImages(yield placeImages(messageChain, igdata, template.templateName, options));
+        template.setImages(yield placeImages(messageChain, images, profilePicture, template.templateName, options));
         yield buildSite(messageChain, client, template, options);
         if (options.autoRevise) {
             (0, __1.log)("Running auto revise cycle");
