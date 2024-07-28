@@ -142,6 +142,5 @@ export async function photographSite(siteUrl: string) {
         top: 0
     })));
 
-    nimageBuffer.toFile('ss.jpeg');
     return nimageBuffer.toFormat('jpeg').toBuffer();
 }
