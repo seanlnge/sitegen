@@ -1,9 +1,8 @@
 .env
 package-lock.json
-/node_modules/
 log.txt
 reviselog.txt
-sites.md
 /successes/
 /build/
+sites.md
 /clients/
