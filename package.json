@@ -16,7 +16,8 @@
     "openai": "^4.52.3",
     "prompt-sync": "^4.2.0",
     "puppeteer": "^22.12.1",
-    "sharp": "^0.33.4"
+    "sharp": "^0.33.4",
+    "typescript": "^5.5.4"
   },
   "devDependencies": {
     "@types/prompt-sync": "^4.2.3"
