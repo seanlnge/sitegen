@@ -4,7 +4,7 @@
   "description": "Generate website from template based on instagram page",
   "main": "index.ts",
   "scripts": {
-    "dev": "tsc && node --no-deprecation dist/index"
+    "dev": "npx tsc && node --no-deprecation dist/index"
   },
   "author": "Sean Lange",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "sharp": "^0.33.4"
   },
   "devDependencies": {
-    "@types/prompt-sync": "^4.2.3"
+    "@types/prompt-sync": "^4.2.3",
+    "typescript": "^5.5.4"
   }
 }

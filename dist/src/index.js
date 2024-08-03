@@ -9,7 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Build = exports.ReviseBuild = void 0;
+exports.ReviseBuild = ReviseBuild;
+exports.Build = Build;
 require('dotenv').config();
 const scraper_1 = require("./scraper");
 const utils_1 = require("./utils");
@@ -176,7 +177,6 @@ function ReviseBuild(messageChain, template, revisionMessage, options) {
         return messageChain;
     });
 }
-exports.ReviseBuild = ReviseBuild;
 function Build(handles, options) {
     return __awaiter(this, void 0, void 0, function* () {
         const messageChain = new messagechain_1.MessageChain({ saveLog: true, logPath: 'log.txt' });
@@ -203,4 +203,3 @@ function Build(handles, options) {
         return { messageChain, template };
     });
 }
-exports.Build = Build;

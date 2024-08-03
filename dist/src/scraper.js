@@ -35,7 +35,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.photographSite = exports.facebookScraper = exports.instagramScraper = void 0;
+exports.instagramScraper = instagramScraper;
+exports.facebookScraper = facebookScraper;
+exports.photographSite = photographSite;
 const puppeteer_1 = __importStar(require("puppeteer"));
 const sharp_1 = __importDefault(require("sharp"));
 const path_1 = __importDefault(require("path"));
@@ -80,11 +82,10 @@ function instagramScraper(handle, options) {
         };
     });
 }
-exports.instagramScraper = instagramScraper;
 ;
 function facebookScraper(handle, options) {
     return __awaiter(this, void 0, void 0, function* () {
-        const browser = yield puppeteer_1.default.launch({ headless: false });
+        const browser = yield puppeteer_1.default.launch({ headless: true });
         const page = (yield browser.pages())[0];
         (0, __1.log)('Opening facebook.com');
         yield page.goto("https://www.facebook.com", { waitUntil: 'networkidle2' });
@@ -105,10 +106,9 @@ function facebookScraper(handle, options) {
         return fbdata;
     });
 }
-exports.facebookScraper = facebookScraper;
 function photographSite(siteUrl) {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const browser = yield puppeteer_1.default.launch({ headless: true, defaultViewport: null });
         const page = (yield browser.pages())[0];
         yield page.emulate(puppeteer_1.KnownDevices['iPhone 12 Pro']);
@@ -155,8 +155,6 @@ function photographSite(siteUrl) {
             left: width * i + 10 * (i - 1),
             top: 0
         })));
-        nimageBuffer.toFile('ss.jpeg');
         return nimageBuffer.toFormat('jpeg').toBuffer();
     });
 }
-exports.photographSite = photographSite;

@@ -106,9 +106,9 @@ class MessageChain {
             return img.data[0].url;
         });
     }
-    queryModel(model = 'gpt-4o', json = false, start = 0, end = this.chain.length) {
-        var _a, _b, _c;
-        return __awaiter(this, void 0, void 0, function* () {
+    queryModel() {
+        return __awaiter(this, arguments, void 0, function* (model = 'gpt-4o', json = false, start = 0, end = this.chain.length) {
+            var _a, _b, _c;
             const messages = this.getChain(start, end);
             this.writeLog("Model '" + model + "' Queried on Chain Indices " + start + " to " + end);
             const resp = (_c = (_b = (_a = (yield openai.chat.completions.create({
@@ -149,9 +149,9 @@ class MessageChain {
     static ToImagesB64(urls, lowResolution) {
         return urls.map(url => this.ToImageB64(url, lowResolution));
     }
-    describeImage(image, prompt = "Describe this image", model = 'gpt-4o') {
-        var _a, _b, _c;
-        return __awaiter(this, void 0, void 0, function* () {
+    describeImage(image_1) {
+        return __awaiter(this, arguments, void 0, function* (image, prompt = "Describe this image", model = 'gpt-4o') {
+            var _a, _b, _c;
             this.writeLog("Model '" + model + "' Queried on Image Description Prompt: " + prompt, image);
             const resp = (_c = (_b = (_a = (yield openai.chat.completions.create({
                 messages: [{
@@ -166,8 +166,8 @@ class MessageChain {
             return resp;
         });
     }
-    describeImages(images, prompt = "Describe this image", model = 'gpt-4o') {
-        return __awaiter(this, void 0, void 0, function* () {
+    describeImages(images_1) {
+        return __awaiter(this, arguments, void 0, function* (images, prompt = "Describe this image", model = 'gpt-4o') {
             const descriptions = yield Promise.all(images.map(image => Promise.race([
                 this.describeImage(image, prompt, model),
                 (0, utils_1.sleep)(15000)
@@ -175,8 +175,8 @@ class MessageChain {
             return descriptions.filter(x => typeof x == 'string' ? true : false);
         });
     }
-    describeImagesAsync(images, prompt = "Describe this image", model = 'gpt-4o') {
-        return __awaiter(this, void 0, void 0, function* () {
+    describeImagesAsync(images_1) {
+        return __awaiter(this, arguments, void 0, function* (images, prompt = "Describe this image", model = 'gpt-4o') {
             const resp = [];
             for (let image of images) {
                 const desc = yield this.describeImage(image, prompt, model);

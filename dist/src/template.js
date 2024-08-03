@@ -87,11 +87,11 @@ class TemplateBuilder {
             this.entryPoints.set(entry, entries.get(entry));
         }
     }
-    build(buildOptions = {
-        blankMode: false,
-        buildFolder: 'build/'
-    }) {
-        return __awaiter(this, void 0, void 0, function* () {
+    build() {
+        return __awaiter(this, arguments, void 0, function* (buildOptions = {
+            blankMode: false,
+            buildFolder: 'build/'
+        }) {
             let html = `<DOCTYPE! html>\n<html>\n${(0, utils_1.xmlParse)(this.html, "html")}\n</html>`;
             let css = this.css.split('*/').slice(1).join('*/');
             // Delete old build folder if existent
