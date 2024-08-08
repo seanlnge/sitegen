@@ -20,6 +20,7 @@ const __1 = require("..");
 const ScraperMap = {
     instagram: scraper_1.instagramScraper,
     facebook: scraper_1.facebookScraper,
+    yelp: scraper_1.yelpScraper,
 };
 /**
  * Collection and parse all client information
@@ -34,8 +35,18 @@ function parseClient(messageChain, socialMediaData, images, options) {
         const imgObjs = messagechain_1.MessageChain.ToImagesURL(images.slice(0, options.photoCount).map(x => x.source));
         const socials = Object.keys(socialMediaData).map(name => {
             const data = socialMediaData[name];
-            const captions = data.images.map(x => x.caption);
-            return `<${name}>\n<bio>\n${data.bio}\n</bio>\n<captions>\n${captions.join('\n')}\n</captions>\n</${name}>`;
+            let strSocial = "";
+            if ("bio" in data)
+                strSocial += `<bio>\n${data.bio}\n</bio>\n`;
+            if ("reviews" in data)
+                strSocial += `<reviews>\n${data.reviews.map(x => x.rating + ": " + x.comments).join('\n')}\n</reviews>\n`;
+            if ("hours" in data)
+                strSocial += `<hours>${data.hours}</hours>`;
+            if ("address" in data)
+                strSocial += `<hours>${data.address}</hours>`;
+            if ("images" in data)
+                strSocial += `<captions>\n${data.images.map(x => x.caption).join('\n')}\n</captions>\n`;
+            return `<${name}>\n${strSocial}</${name}>`;
         });
         messageChain.addUserMessage(`I will give you the social media data for my client. Turn this information into a JSON object describing this client. Follow all of the rules.\n<rules>Add as much data as you can find into this JSON object. For specific data such as location, contact information, or instagram username, add information into it's own field. Add information about this page's style.</rules>\n<example>\n\`{ "instagram": "@_potterylovers", "address": "201 Main St, Farmington, Maine, 19382", "purpose": "Business that sells pottery lessons", "number": "302-404-1111", "style": "Artisinal and personable", "extraInfo": "Very polished page ran very professionally. The pictures utilize very earthy colors, and include studio shots along with pictures with in-home settings, ..." }\`\n</example> \n<socials>${socials.join('\n')}</socials>`, ...imgObjs);
         // Get prefered design for website
@@ -186,9 +197,12 @@ function Build(handles, options) {
         let profilePicture = '';
         yield Promise.all(Object.keys(handles).map((key) => __awaiter(this, void 0, void 0, function* () {
             const socialMedia = key;
+            if (handles[socialMedia] == undefined)
+                return;
             const data = yield ScraperMap[socialMedia](handles[socialMedia], options);
             socialMediaData[socialMedia] = data;
-            images.push(...data.images);
+            if ("images" in data)
+                images.push(...data.images);
             if (!profilePicture && "profilePicture" in data)
                 profilePicture = data.profilePicture;
         })));

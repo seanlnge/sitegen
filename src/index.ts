@@ -1,5 +1,5 @@
 require('dotenv').config();
-import { facebookScraper, instagramScraper, photographSite, ScrapedImage } from './scraper';
+import { facebookScraper, instagramScraper, photographSite, ScrapedImage, yelpScraper } from './scraper';
 import { jsonParse } from './utils';
 import { MessageChain } from './messagechain';
 import { TemplateBuilder, Templates } from './template';
@@ -8,11 +8,13 @@ import { log, error } from '..';
 export type Handles = {
     instagram?: string;
     facebook?: string;
+    yelp?: string;
 }
 
 const ScraperMap = {
     instagram: instagramScraper,
     facebook: facebookScraper,
+    yelp: yelpScraper,
 };
 
 type U<T extends keyof typeof ScraperMap> = Partial<Record<T, Awaited<ReturnType<typeof ScraperMap[T]>>>>; // trust trust
@@ -44,8 +46,14 @@ async function parseClient(
 
     const socials = Object.keys(socialMediaData).map(name => {
         const data = socialMediaData[name as keyof Handles]!;
-        const captions = data.images.map(x => x.caption);
-        return `<${name}>\n<bio>\n${data.bio}\n</bio>\n<captions>\n${captions.join('\n')}\n</captions>\n</${name}>`;
+        let strSocial = "";
+
+        if("bio" in data) strSocial += `<bio>\n${data.bio}\n</bio>\n`;
+        if("reviews" in data) strSocial += `<reviews>\n${data.reviews.map(x => x.rating + ": " + x.comments).join('\n')}\n</reviews>\n`;
+        if("hours" in data) strSocial += `<hours>${data.hours}</hours>`;
+        if("address" in data) strSocial += `<hours>${data.address}</hours>`;
+        if("images" in data) strSocial += `<captions>\n${data.images.map(x => x.caption).join('\n')}\n</captions>\n`;
+        return `<${name}>\n${strSocial}</${name}>`;
     });
 
     messageChain.addUserMessage(
@@ -233,10 +241,12 @@ export async function Build(handles: Handles, options: Options) {
 
     await Promise.all(Object.keys(handles).map(async key => {
         const socialMedia = key as keyof Handles;
+        if(!handles[socialMedia]) return;
+
         const data = await ScraperMap[socialMedia](handles[socialMedia]!, options);
         socialMediaData[socialMedia] = data;
 
-        images.push(...data.images);
+        if("images" in data) images.push(...data.images);
         if(!profilePicture && "profilePicture" in data) profilePicture = data.profilePicture;
     }));
     

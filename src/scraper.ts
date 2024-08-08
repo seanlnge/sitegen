@@ -22,7 +22,6 @@ export async function instagramScraper(handle: string, options: Options) {
 
     log('Opening instagram.com');
     await page.goto("https://www.instagram.com", { waitUntil: 'networkidle2' });
-    log('Logging into account');
 
     await page.click('#loginForm input[name="username"]');
     await page.keyboard.type(process.env['INSTA_USER']!, { delay: 50 });
@@ -62,7 +61,6 @@ export async function facebookScraper(handle: string, options: Options) {
 
     log('Opening facebook.com');
     await page.goto("https://www.facebook.com", { waitUntil: 'networkidle2' });
-    log('Logging into account');
 
     await page.click('#email');
     await page.keyboard.type(process.env['FACEBOOK_EMAIL']!, { delay: 50 });
@@ -84,9 +82,41 @@ export async function facebookScraper(handle: string, options: Options) {
     return fbdata;
 }
 
+export async function yelpScraper(handle: string, options: Options) {
+    const browser = await puppeteer.launch({ headless: true });
+    const page = (await browser.pages())[0];
+
+    log("Opening yelp.com");
+    await page.goto('https://www.yelp.com/biz/' + handle, { waitUntil: 'networkidle2' });
+
+    const yelpdata = await page.evaluate(() => {
+        const reviews = Array.from(document.querySelectorAll("#reviews > section > div > ul > li > div"));
+        const parsedReviews = [];
+
+        for(let i=0; i<Math.min(10, reviews.length); i++) {
+            const review = reviews[i] as HTMLLIElement;  
+            parsedReviews.push({
+                rating: review.children[1]!.querySelector("*[role='img']")!.ariaLabel,
+                comments: (review.children[3] as HTMLDivElement).innerText,
+            });
+        }
+
+        return {
+            reviews: parsedReviews,
+            hours: document.querySelector('tbody')!.innerText!.replace(/\n/g, ""),
+            address: document.querySelector('address')!.innerText
+        };
+    });
+
+    await browser.close();
+
+    return yelpdata;
+}
+
 export async function photographSite(siteUrl: string) {
     const browser = await puppeteer.launch({ headless: true, defaultViewport: null });
     const page = (await browser.pages())[0];
+
 
     await page.emulate(KnownDevices['iPhone 12 Pro']);
 

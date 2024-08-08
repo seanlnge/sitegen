@@ -82,13 +82,14 @@ const ask = (m, after = "") => prompt(fg + m + reset + after);
  */
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b;
+        var _a, _b, _c;
         console.log(bg + " ---=--== SiteGEN ==--=--- " + reset);
         const HANDLES = {};
         nl();
         console.log(fg + "To skip a handle, click Enter" + reset);
         HANDLES.instagram = (_a = ask("Instagram handle: ", "@")) !== null && _a !== void 0 ? _a : undefined;
         HANDLES.facebook = (_b = ask("Facebook handle: ")) !== null && _b !== void 0 ? _b : undefined;
+        HANDLES.yelp = (_c = ask("Yelp handle: ")) !== null && _c !== void 0 ? _c : undefined;
         const OPTIONS = {
             template: undefined,
             photoCount: 10,

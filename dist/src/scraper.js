@@ -37,6 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.instagramScraper = instagramScraper;
 exports.facebookScraper = facebookScraper;
+exports.yelpScraper = yelpScraper;
 exports.photographSite = photographSite;
 const puppeteer_1 = __importStar(require("puppeteer"));
 const sharp_1 = __importDefault(require("sharp"));
@@ -54,7 +55,6 @@ function instagramScraper(handle, options) {
         const page = (yield browser.pages())[0];
         (0, __1.log)('Opening instagram.com');
         yield page.goto("https://www.instagram.com", { waitUntil: 'networkidle2' });
-        (0, __1.log)('Logging into account');
         yield page.click('#loginForm input[name="username"]');
         yield page.keyboard.type(process.env['INSTA_USER'], { delay: 50 });
         yield page.click('#loginForm input[name="password"]');
@@ -89,7 +89,6 @@ function facebookScraper(handle, options) {
         const page = (yield browser.pages())[0];
         (0, __1.log)('Opening facebook.com');
         yield page.goto("https://www.facebook.com", { waitUntil: 'networkidle2' });
-        (0, __1.log)('Logging into account');
         yield page.click('#email');
         yield page.keyboard.type(process.env['FACEBOOK_EMAIL'], { delay: 50 });
         yield page.click('#pass');
@@ -104,6 +103,32 @@ function facebookScraper(handle, options) {
         });
         yield browser.close();
         return fbdata;
+    });
+}
+function yelpScraper(handle, options) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const browser = yield puppeteer_1.default.launch({ headless: true });
+        const page = (yield browser.pages())[0];
+        (0, __1.log)("Opening yelp.com");
+        yield page.goto('https://www.yelp.com/biz/' + handle, { waitUntil: 'networkidle2' });
+        const yelpdata = yield page.evaluate(() => {
+            const reviews = Array.from(document.querySelectorAll("#reviews > section > div > ul > li > div"));
+            const parsedReviews = [];
+            for (let i = 0; i < Math.min(10, reviews.length); i++) {
+                const review = reviews[i];
+                parsedReviews.push({
+                    rating: review.children[1].querySelector("*[role='img']").ariaLabel,
+                    comments: review.children[3].innerText,
+                });
+            }
+            return {
+                reviews: parsedReviews,
+                hours: document.querySelector('tbody').innerText.replace(/\n/g, ""),
+                address: document.querySelector('address').innerText
+            };
+        });
+        yield browser.close();
+        return yelpdata;
     });
 }
 function photographSite(siteUrl) {

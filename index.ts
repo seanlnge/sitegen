@@ -2,6 +2,7 @@ import { Build, Handles, Options, ReviseBuild } from "./src";
 import Prompt from "prompt-sync";
 import * as path from "path";
 import { Templates } from "./src/template";
+import { yelpScraper } from "./src/scraper";
 const prompt = Prompt();
 
 // I love console codes
@@ -56,6 +57,7 @@ async function main() {
     console.log(fg + "To skip a handle, click Enter" + reset);
     HANDLES.instagram = ask("Instagram handle: ", "@") ?? undefined;
     HANDLES.facebook = ask("Facebook handle: ") ?? undefined;
+    HANDLES.yelp = ask("Yelp handle: ") ?? undefined;
 
     const OPTIONS: Options = {
         template: undefined,
