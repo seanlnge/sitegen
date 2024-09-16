@@ -215,32 +215,14 @@ SiteGEN is a dynamic application designed to automate the creation of customized
 
 > Run sitegen using the command below:
 > ```console
-> $ > INSERT-RUN-COMMANDS
+> $ > npm run prod
 > ```
-
-###  Tests
-
-> Run the test suite using the command below:
-> ```console
-> $ > INSERT-TEST-COMMANDS
-> ```
-
----
-
-##  Project Roadmap
-
-- [X] `► INSERT-TASK-1`
-- [ ] `► INSERT-TASK-2`
-- [ ] `► ...`
-
----
 
 ##  Contributing
 
 Contributions are welcome! Here are several ways you can contribute:
 
 - **[Report Issues](https://github.com/seanlnge/sitegen/issues)**: Submit bugs found or log feature requests for the `sitegen` project.
-- **[Submit Pull Requests](https://github.com/seanlnge/sitegen/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
 - **[Join the Discussions](https://github.com/seanlnge/sitegen/discussions)**: Share your insights, provide feedback, or ask questions.
 
 <details closed>
@@ -277,16 +259,6 @@ Contributions are welcome! Here are several ways you can contribute:
    </a>
 </p>
 </details>
-
----
-
-##  License
-
-This project is protected under the [SELECT-A-LICENSE](https://choosealicense.com/licenses) License. For more details, refer to the [LICENSE](https://choosealicense.com/licenses/) file.
-
----
-
-##  Acknowledgments
 
 - List any resources, contributors, inspiration, etc. here.
 
